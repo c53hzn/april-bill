@@ -13,17 +13,7 @@ const firebaseConfig = {
   authDomain: process.env.VITE_authDomain,
   projectId: process.env.VITE_projectId,
 };
-const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
-const auth = getAuth();
-const user = auth.currentUser;
-var isLoggedin = false;
-if (user) {
-  // User is signed in, see docs for a list of available properties
-  // https://firebase.google.com/docs/reference/js/auth.user
-  isLoggedin = true;
-}
-//firebase config end
+
 
 
 export default {
