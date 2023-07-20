@@ -5,9 +5,6 @@
 </template>
 
 <script>
-var myAccounts = dummyData.ACCOUNT;
-var myCategories = dummyData.CATEGORY;
-var myBills = dummyData.BILL;
 //firebase config start
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.0.0/firebase-app.js";
 import { getFirestore,doc,getDocs,setDoc,deleteDoc,collection  } from "https://www.gstatic.com/firebasejs/10.0.0/firebase-firestore.js";
