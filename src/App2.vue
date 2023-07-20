@@ -7,11 +7,11 @@
 <script>
 //firebase config start
 const firebaseConfig = {
-  authDomain: process.env.VITE_authDomain,
+  authDomain: import.meta.env.VITE_authDomain,
   projectId: process.env.VITE_projectId,
 };
 
-console.log("asdf")
+console.log("asdfasdf")
 
 export default {
 	name: "April-Bill",
