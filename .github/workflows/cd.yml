@@ -7,7 +7,6 @@ jobs:
     runs-on: ${{ matrix.os }}
 
     env:
-      VITE_INTERNAL: true
       VITE_apiKey : "AIzaSyBzxFOF7P9rM5UvpKyUxHqlghUNJeuZzK8"
       VITE_authDomain : "april-bill.firebaseapp.com"
       VITE_projectId : "april-bill"
