@@ -11,7 +11,7 @@ const firebaseConfig = {
   projectId: process.env.VITE_projectId,
 };
 
-
+console.log("asdf")
 
 export default {
 	name: "April-Bill",
