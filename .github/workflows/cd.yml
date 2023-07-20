@@ -6,6 +6,15 @@ jobs:
   cd:
     runs-on: ${{ matrix.os }}
 
+    env:
+      VITE_INTERNAL: true
+      VITE_apiKey : "AIzaSyBzxFOF7P9rM5UvpKyUxHqlghUNJeuZzK8"
+      VITE_authDomain : "april-bill.firebaseapp.com"
+      VITE_projectId : "april-bill"
+      VITE_storageBucket : "april-bill.appspot.com"
+      VITE_messagingSenderId : "359825891077"
+      VITE_appId : "1:359825891077:web:f421390c6f59d71f5ea16c"
+      
     strategy:
       matrix:
         os: [ubuntu-latest]
