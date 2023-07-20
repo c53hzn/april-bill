@@ -8,7 +8,7 @@ in `vite.config.js` file
 ```js
 export default defineConfig({
   plugins: [vue()],
-  base: "/april-bill/"
+  base: "/april-bill/"//delete it if you want it in root path
 })
 ```
 
