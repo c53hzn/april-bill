@@ -187,6 +187,18 @@
       <div class="view-container" :class="{ show: isShowBill }">
         <p>
           日期:
+          <button @click="loadToday">今天</button>
+          模板:
+          <select
+            style="margin-top: -1; min-width: 50px; height: 24px; text-align: center"
+            @change="loadBillTemplate"
+            v-model="billTemplateName"
+          >
+            <option v-for="(option, i) in billTemplateOption" :key="i">
+              {{ option }}
+            </option>
+          </select>
+          <br />
           <br />
           <DatePickerUnit
             @dateChanged="changeBillDate"
@@ -249,7 +261,7 @@
           详细描述:
           <textarea
             placeholder="选填"
-            style="width: 100%; height: 150px"
+            style="width: 100%; height: 100px"
             v-model="billSelected.NOTES"
           ></textarea>
         </p>
@@ -257,6 +269,10 @@
           <button v-if="isUpdateBill" @click="updateBill">更新</button>
           <button @click="addBill">另存</button>
           <button @click="hideOverlay">取消</button>
+        </div>
+        <div style="text-align: center">
+          <button @click="saveBillTemplate">存为模板</button>
+          <button @click="delBillTemplate">删除模板</button>
         </div>
         <div class="close-btn" @click="hideOverlay">×</div>
       </div>
@@ -388,7 +404,7 @@ var myCategories = dummyData.CATEGORY;
 var myBills = dummyData.BILL;
 //firebase config start
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.0.0/firebase-app.js";
-import { getFirestore,doc,getDocs,setDoc,deleteDoc,collection  } from "https://www.gstatic.com/firebasejs/10.0.0/firebase-firestore.js";
+import { getFirestore,doc,getDocs,query, where, orderBy, setDoc,deleteDoc,collection  } from "https://www.gstatic.com/firebasejs/10.0.0/firebase-firestore.js";
 import { getAuth, signInWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/10.0.0/firebase-auth.js";
 const firebaseConfig = {
   apiKey: import.meta.env.VITE_apiKey,
@@ -401,17 +417,13 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 const auth = getAuth();
-const user = auth.currentUser;
 var isLoggedin = false;
-if (user) {
-  // User is signed in, see docs for a list of available properties
-  // https://firebase.google.com/docs/reference/js/auth.user
+var uid = localStorage.getItem("uid");
+if (uid) {
   isLoggedin = true;
 }
 //firebase config end
 var newBill = function (bill) {
-  var DATE_NUM = bill.DATE.substring(0,4)+bill.DATE.substring(5,7)+bill.DATE.substring(8,10);
-  DATE_NUM = Number(DATE_NUM);
   return {
     NAME: bill.NAME,
     ACC_IN: bill.ACC_IN,
@@ -419,7 +431,6 @@ var newBill = function (bill) {
     AMOUNT: bill.AMOUNT,
     CATEGORY: bill.CATEGORY,
     DATE: bill.DATE,
-    DATE_NUM,
     NATURE: bill.NATURE,
     NOTES: bill.NOTES,
     REMARK: bill.REMARK,
@@ -462,9 +473,6 @@ var emptyCat = {
   NAME: "",
   TYPE: ""
 };
-function custom_sort(a, b) {
-    return new Date(b.DATE).getTime() - new Date(a.DATE).getTime();
-}
 export default {
   components: {
     Login,
@@ -482,6 +490,7 @@ export default {
       natureOption: ["支出", "收入", "转账"],
       perPageOption: [1, 3, 5, 7, 10, 20, 30, 40],
       pageNumOption: [],
+      billTemplateOption: [],
       curPageBills: [],
       bills: [],
       accounts: [],
@@ -494,6 +503,8 @@ export default {
       isShowSumCat: false,
       isUpdateBill: true,
       billSelected: {},
+      billTemplateName: "",
+      billTemplates: [],
       accEditing: [],
       catEditing: [],
       sumAcc: [],
@@ -597,6 +608,7 @@ export default {
     showBillDetail(idx) {
       this.showOverlay();
       this.isShowBill = true;
+      this.billTemplateName = "";
       if (idx != -1) {
         var bill = this.curPageBills[idx];
         this.isUpdateBill = true;
@@ -687,25 +699,26 @@ export default {
           await setDoc(doc(db, "BOOK/BOOK001/BILL", bill.id), bill);
           this.isShowOverlay = false;
           this.isShowBill = false;
-          const querySnapshot3 = await getDocs(collection(db, "BOOK/BOOK001/BILL"));
+          const billsRef = collection(db, "BOOK/BOOK001/BILL");
+          var queryStartDate = [
+            this.filter.startDate.year,
+            this.filter.startDate.month,
+            this.filter.startDate.day
+          ].join("-");
+          var queryEndDate = [
+            this.filter.endDate.year,
+            this.filter.endDate.month,
+            this.filter.endDate.day
+          ].join("-");
+          const q = query(billsRef, where("DATE", ">=", queryStartDate), where("DATE", "<=", queryEndDate), orderBy("DATE", "desc"));
+          const querySnapshot3 = await getDocs(q);
           myBills = [];
           querySnapshot3.forEach((doc) => {
             let bill = doc.data();
             bill.id = doc.id;
             myBills.push(newBill(bill));
           });
-          myBills.sort(custom_sort);
           this.loadNewBill(this.curPage);
-          // var bills = this.bills;
-          // for (let i = 0; i < bills.length; i++) {
-          //   if (bills[i].id == bill.id) {
-          //     this.bills[i] = bill;
-          //     this.isShowOverlay = false;
-          //     this.isShowBill = false;
-          //     this.loadBill();
-          //     return;
-          //   }
-          // }
         }
       } else {
         alert("请填写所有必填项");
@@ -743,20 +756,30 @@ export default {
             this.billSelected.day
           ].join("-");
           bill.id = newID;
-          //此处提交新账单
-          // myBills.unshift(bill);     
+          //此处提交新账单   
           await setDoc(doc(db, "BOOK/BOOK001/BILL", bill.id), bill);
           //提交新账单
           this.isShowOverlay = false;
           this.isShowBill = false;
-          const querySnapshot3 = await getDocs(collection(db, "BOOK/BOOK001/BILL"));
+          const billsRef = collection(db, "BOOK/BOOK001/BILL");
+          var queryStartDate = [
+            this.filter.startDate.year,
+            this.filter.startDate.month,
+            this.filter.startDate.day
+          ].join("-");
+          var queryEndDate = [
+            this.filter.endDate.year,
+            this.filter.endDate.month,
+            this.filter.endDate.day
+          ].join("-");
+          const q = query(billsRef, where("DATE", ">=", queryStartDate), where("DATE", "<=", queryEndDate), orderBy("DATE", "desc"));
+          const querySnapshot3 = await getDocs(q);
           myBills = [];
           querySnapshot3.forEach((doc) => {
             let bill = doc.data();
             bill.id = doc.id;
             myBills.push(newBill(bill));
           });
-          myBills.sort(custom_sort);
           this.loadNewBill(1);
         }
       } else {
@@ -765,25 +788,27 @@ export default {
     },
     async delBill(id) {
       if (confirm("确认删除吗？")) {
-        //删除此id的账单
-        // let idx = 0;
-        // for (let i = 0; i < myBills.length; i++) {
-        //   if (myBills[i].id == id) {
-        //     idx = i;
-        //     break;
-        //   }
-        // }
-        // myBills.splice(this.skipNumber() + idx, 1);
         //删除之后重新载入
         await deleteDoc(doc(db, "BOOK/BOOK001/BILL", id));
-        const querySnapshot3 = await getDocs(collection(db, "BOOK/BOOK001/BILL"));
+        const billsRef = collection(db, "BOOK/BOOK001/BILL");
+        var queryStartDate = [
+          this.filter.startDate.year,
+          this.filter.startDate.month,
+          this.filter.startDate.day
+        ].join("-");
+        var queryEndDate = [
+          this.filter.endDate.year,
+          this.filter.endDate.month,
+          this.filter.endDate.day
+        ].join("-");
+        const q = query(billsRef, where("DATE", ">=", queryStartDate), where("DATE", "<=", queryEndDate), orderBy("DATE", "desc"));
+        const querySnapshot3 = await getDocs(q);
         myBills = [];
         querySnapshot3.forEach((doc) => {
           let bill = doc.data();
           bill.id = doc.id;
           myBills.push(newBill(bill));
         });
-        myBills.sort(custom_sort);
         this.loadNewBill(this.curPage);
       }
     },
@@ -1163,23 +1188,82 @@ export default {
       }
       this.searchResultClass = searchResultClass;
     },
-    async getLoginInfo(myUser) {
+    getLoginInfo(myUser) {
       var email = myUser.email;
       var password = myUser.password;
       signInWithEmailAndPassword(auth, email, password)
       .then((userCredential) => {
         // Signed in 
+        localStorage.setItem("uid",userCredential.user.uid);
         this.isLoggedin = true;
         this.login_errMsg = "";
+        this.init();
       })
       .catch((error) => {
         const errorCode = error.code;
         const errorMessage = error.message;
+        localStorage.removeItem("uid");
         this.login_errMsg = errorMessage;
       });
+    },
+    logout() {
+      signOut(auth).then(() => {
+        // Sign-out successful.
+        localStorage.removeItem("uid");
+        this.isLoggedin = false;
+      }).catch((error) => {
+        // An error happened.
+        console.log(error)
+      });
+    },
+    getLastMonth() {
+      var date = new Date();
+      var year = date.getFullYear();
+      var month = date.getMonth() + 1;
+      var day = date.getDate();
+      month = month < 10 ? "0" + month : month;
+      day = day < 10 ? "0" + day : day;
+      var lastMonthMonth = month==1?12:month-1;
+      lastMonthMonth = lastMonthMonth < 10 ? "0" + lastMonthMonth : lastMonthMonth;
+      var lastMonthYear = lastMonthMonth==12?year-1:year;
+      var tempDate = new Date(lastMonthYear,lastMonthMonth-1,day);
+      var tempDay = tempDate.getDate();
+      var tempDate2 = tempDay<day?new Date(lastMonthYear,lastMonthMonth-1,day-tempDay):tempDate;
+      var lastMonthDay = tempDate2.getDate();
+      lastMonthDay = lastMonthDay < 10 ? "0" + lastMonthDay : lastMonthDay;
+      return {
+        startDate: {
+          year: lastMonthYear,
+          month: lastMonthMonth,
+          day: lastMonthDay
+        },
+        endDate: {
+          year,
+          month,
+          day
+        }
+      }
+    },
+    async init() {
+      var dateObj = this.getLastMonth();
+      this.filter.startDate = dateObj.startDate;
+      this.filter.endDate = dateObj.endDate;
       const querySnapshot1 = await getDocs(collection(db, "BOOK/BOOK001/ACCOUNT"));
       const querySnapshot2 = await getDocs(collection(db, "BOOK/BOOK001/CATEGORY"));
-      const querySnapshot3 = await getDocs(collection(db, "BOOK/BOOK001/BILL"));
+      const billsRef = collection(db, "BOOK/BOOK001/BILL");
+      var queryStartDate = [
+        this.filter.startDate.year,
+        this.filter.startDate.month,
+        this.filter.startDate.day
+      ].join("-");
+      var queryEndDate = [
+        this.filter.endDate.year,
+        this.filter.endDate.month,
+        this.filter.endDate.day
+      ].join("-");
+      const q = query(billsRef, where("DATE", ">=", queryStartDate), where("DATE", "<=", queryEndDate), orderBy("DATE", "desc"));
+      const querySnapshot3 = await getDocs(q);
+      const querySnapshot4 = await getDocs(collection(db, "BOOK/BOOK001/BILL_template"));
       myAccounts = [];
       querySnapshot1.forEach((doc) => {
         let acc = doc.data();
@@ -1198,47 +1282,109 @@ export default {
         bill.id = doc.id;
         myBills.push(newBill(bill));
       });
-      myBills.sort(custom_sort);
-      this.init();
-    },
-    logout() {
-      signOut(auth).then(() => {
-        // Sign-out successful.
-        this.isLoggedin = false;
-      }).catch((error) => {
-        // An error happened.
-        console.log(error)
+      this.billTemplates = [];
+      querySnapshot4.forEach((doc) => {
+        let temp = doc.data();
+        temp.id = doc.id;
+        this.billTemplateOption.push(temp.NAME);
+        this.billTemplates.push(newBill(temp));
       });
+      this.loadNewBill(1);
     },
-    init() {
+    loadToday() {
       var date = new Date();
       var year = date.getFullYear();
-      var month = date.getMonth() + 1;
+      var month = date.getMonth()+1;
+      month = month<10?"0"+month:month;
       var day = date.getDate();
-      month = month < 10 ? "0" + month : month;
-      day = day < 10 ? "0" + day : day;
-      var lastMonthMonth = month==1?12:month-1;
-      lastMonthMonth = lastMonthMonth < 10 ? "0" + lastMonthMonth : lastMonthMonth;
-      var lastMonthYear = lastMonthMonth==12?year-1:year;
-      var tempDate = new Date(lastMonthYear,lastMonthMonth-1,day);
-      var tempDay = tempDate.getDate();
-      var tempDate2 = tempDay<day?new Date(lastMonthYear,lastMonthMonth-1,day-tempDay):tempDate;
-      var lastMonthDay = tempDate2.getDate();
-      lastMonthDay = lastMonthDay < 10 ? "0" + lastMonthDay : lastMonthDay;
-      this.filter.startDate = {
-        year: lastMonthYear,
-        month: lastMonthMonth,
-        day: lastMonthDay
-      };
-      this.filter.endDate = {
-        year,
-        month,
-        day
-      };
-      this.loadNewBill(1);
+      day = day<10?"0"+day:day;
+      this.billSelected.year = year;
+      this.billSelected.month = month;
+      this.billSelected.day = day;
+      this.billSelected.DATE = [year, month, day].join("-");
+    },
+    loadBillTemplate() {
+      var billTemplateName = this.billTemplateName;
+      var billTemplates = this.billTemplates;
+      for (let i = 0; i < billTemplates.length; i++) {
+        if (billTemplateName==billTemplates[i].NAME) {
+          let year = this.billSelected.year;
+          let month = this.billSelected.month;
+          let day = this.billSelected.day;
+          this.billSelected = newBill(billTemplates[i]);
+          this.billSelected.year = year;
+          this.billSelected.month = month;
+          this.billSelected.day = day;
+          return;
+        }
+      }
+    },
+    async saveBillTemplate() {
+      if(confirm("确定保存模板吗？")) {
+        var billName = this.billSelected.NAME;
+        var billTemplates = this.billTemplates;
+        var len = billTemplates.length;
+        var bill = newBill(this.billSelected);
+        bill.DATE = "";
+        var id = "";
+        for (let i = 0; i < len; i++) {
+          if (billName==billTemplates[i].NAME) {
+            id = billTemplates[i].id;
+            bill.id = id;
+            await setDoc(doc(db, "BOOK/BOOK001/BILL_template", id), bill);
+            const querySnapshot4 = await getDocs(collection(db, "BOOK/BOOK001/BILL_template"));
+            this.billTemplates = [];
+            this.billTemplateOption = [];
+            querySnapshot4.forEach((doc) => {
+              let temp = doc.data();
+              temp.id = doc.id;
+              this.billTemplateOption.push(temp.NAME);
+              this.billTemplates.push(newBill(temp));
+            });
+            return;
+          }
+        }
+        id = len<9?"template00"+(len+1):len<99?"template0"+(len+1):"template"+(len+1);
+        bill.id = id;
+        await setDoc(doc(db, "BOOK/BOOK001/BILL_template", id), bill);
+        const querySnapshot4 = await getDocs(collection(db, "BOOK/BOOK001/BILL_template"));
+        this.billTemplates = [];
+        this.billTemplateOption = [];
+        querySnapshot4.forEach((doc) => {
+          let temp = doc.data();
+          temp.id = doc.id;
+          this.billTemplateOption.push(temp.NAME);
+          this.billTemplates.push(newBill(temp));
+        });
+      }
+    },
+    async delBillTemplate() {
+      if(confirm("确定删除模板吗？")) {
+        var billName = this.billSelected.NAME;
+        var billTemplates = this.billTemplates;
+        var len = billTemplates.length;
+        var id = "";
+        for (let i = 0; i < len; i++) {
+          if (billName==billTemplates[i].NAME) {
+            id = billTemplates[i].id;
+            await deleteDoc(doc(db, "BOOK/BOOK001/BILL_template", id));
+            const querySnapshot4 = await getDocs(collection(db, "BOOK/BOOK001/BILL_template"));
+            this.billTemplates = [];
+            this.billTemplateOption = [];
+            querySnapshot4.forEach((doc) => {
+              let temp = doc.data();
+              temp.id = doc.id;
+              this.billTemplateOption.push(temp.NAME);
+              this.billTemplates.push(newBill(temp));
+            });
+            return;
+          }
+        }
+        alert("没有这个模板");
+      }
     }
   },
-  mounted() {
+  created() {
     if(this.isLoggedin) {
       this.init();
     }

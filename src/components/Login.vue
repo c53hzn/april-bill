@@ -24,6 +24,7 @@
             "
             type="email"
             v-model="email"
+            @keyup.enter="login"
           />
         </p>
         <p>
@@ -38,6 +39,7 @@
             "
             type="password"
             v-model="password"
+            @keyup.enter="login"
           />
         </p>
         <p>
