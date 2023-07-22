@@ -117,19 +117,21 @@ const firebaseConfig = {
 
 由于firebase的秘钥在电脑的环境变量里，自动部署的时候访问不到，这样就无法正确地生成静态文件并部署到静态服务器。
 
-需要做的是在GitHub Actions的 `workflows` 文件的 `jobs` 的详情里新增五个环境变量，输入秘钥
+需要做的是进入GitHub的repo的settings页面，左侧菜单里找到`Secrets and Variables`，点开之后进入 `Actions` 的页面，新增五个 `repository secrets`，输入秘钥。
+
+然后在GitHub Actions的 `workflows` 文件的 `jobs` 的详情里调用五个环境变量。
 
 ```yml
 jobs:
   cd:
     runs-on: ${{ matrix.os }}
     env:
-      VITE_apiKey : "***"
-      VITE_authDomain : "***.firebaseapp.com"
-      VITE_projectId : "***"
-      VITE_storageBucket : "***.appspot.com"
-      VITE_messagingSenderId : "***"
-      VITE_appId : "***"
+      VITE_apiKey : ${{ secrets.VITE_apiKey }}
+      VITE_authDomain : ${{ secrets.VITE_authDomain }}
+      VITE_projectId : ${{ secrets.VITE_projectId }}
+      VITE_storageBucket : ${{ secrets.VITE_storageBucket }}
+      VITE_messagingSenderId : ${{ secrets.VITE_messagingSenderId }}
+      VITE_appId : ${{ secrets.VITE_appId }}
 ```
 
 这样就可以自动部署静态文件，并正确地访问动态服务器了。
