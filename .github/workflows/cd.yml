@@ -7,12 +7,12 @@ jobs:
     runs-on: ${{ matrix.os }}
 
     env:
-      VITE_apiKey : "AIzaSyBzxFOF7P9rM5UvpKyUxHqlghUNJeuZzK8"
-      VITE_authDomain : "april-bill.firebaseapp.com"
-      VITE_projectId : "april-bill"
-      VITE_storageBucket : "april-bill.appspot.com"
-      VITE_messagingSenderId : "359825891077"
-      VITE_appId : "1:359825891077:web:f421390c6f59d71f5ea16c"
+      VITE_apiKey : ${{ secrets.ENV_FILE.VITE_apiKey }}
+      VITE_authDomain : ${{ secrets.ENV_FILE.VITE_authDomain }}
+      VITE_projectId : ${{ secrets.ENV_FILE.VITE_projectId }}
+      VITE_storageBucket : ${{ secrets.ENV_FILE.VITE_storageBucket }}
+      VITE_messagingSenderId : ${{ secrets.ENV_FILE.VITE_messagingSenderId }}
+      VITE_appId : ${{ secrets.ENV_FILE.VITE_appId }}
       
     strategy:
       matrix:
