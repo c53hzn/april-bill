@@ -186,21 +186,10 @@
       ></div>
       <div class="view-container" :class="{ show: isShowBill }">
         <p>
-          日期:
-          <button @click="loadToday">今天</button>
-          模板:
-          <select
-            style="margin-top: -1; min-width: 50px; height: 24px; text-align: center"
-            @change="loadBillTemplate"
-            v-model="billTemplateName"
-          >
-            <option v-for="(option, i) in billTemplateOption" :key="i">
-              {{ option }}
-            </option>
-          </select>
-          <br />
-          <br />
-          <DatePickerUnit
+          <span style="display:block;margin-bottom:10px;">日期:
+            <button @click="loadToday">今天</button>
+          </span>  
+          <DatePickerUnit style="display:block;margin-bottom:10px;"
             @dateChanged="changeBillDate"
             :startYear="startYear"
             :endYear="endYear"
@@ -208,6 +197,17 @@
             :month="billSelected.month"
             :day="billSelected.day"
           ></DatePickerUnit>
+          <span style="display:block;margin-bottom:10px;">模板:
+            <select
+              style="margin-top: -1; min-width: 50px; height: 24px;"
+              @change="loadBillTemplate"
+              v-model="billTemplateName"
+            >
+              <option v-for="(option, i) in billTemplateOption" :key="i">
+                {{ option }}
+              </option>
+            </select>
+          </span>
         </p>
         <p>
           事项:
@@ -269,8 +269,8 @@
           <button v-if="isUpdateBill" @click="updateBill">更新</button>
           <button @click="addBill">另存</button>
           <button @click="hideOverlay">取消</button>
-        </div>
-        <div style="text-align: center">
+          <br/>
+          <br/>
           <button @click="saveBillTemplate">存为模板</button>
           <button @click="delBillTemplate">删除模板</button>
         </div>
@@ -392,16 +392,14 @@
       </div>
     </div>
     <Login v-if="!isLoggedin" :errorMsg="login_errMsg" @login="getLoginInfo"></Login>
+    <ForkOnGithub v-if="!isLoggedin"></ForkOnGithub>
   </div>
 </template>
 
 <script>
+import ForkOnGithub from "./components/Fork-On-Github.vue";
 import Login from "./components/Login.vue";
 import DatePickerUnit from "./components/DatePickerUnit.vue";
-import dummyData from "./assets/dummy-data.js";
-var myAccounts = dummyData.ACCOUNT;
-var myCategories = dummyData.CATEGORY;
-var myBills = dummyData.BILL;
 //firebase config start
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.0.0/firebase-app.js";
 import { getFirestore,doc,getDocs,query, where, orderBy, setDoc,deleteDoc,collection  } from "https://www.gstatic.com/firebasejs/10.0.0/firebase-firestore.js";
@@ -475,6 +473,7 @@ var emptyCat = {
 };
 export default {
   components: {
+    ForkOnGithub,
     Login,
     DatePickerUnit,
   },
@@ -488,7 +487,7 @@ export default {
       startYear: 2020,
       endYear: 2030,
       natureOption: ["支出", "收入", "转账"],
-      perPageOption: [1, 3, 5, 7, 10, 20, 30, 40],
+      perPageOption: [10, 20, 50, 100],
       pageNumOption: [],
       billTemplateOption: [],
       curPageBills: [],
@@ -553,9 +552,6 @@ export default {
   },
   methods: {
   	loadNewBill(pageNum) {
-      this.bills = this.getFilteredBills(myBills, this.filter);
-      this.accounts = myAccounts;
-      this.categories = myCategories;
       var totalBills = this.bills.length;
       var perPage = this.perPageSelected;
       var lastPage = Math.ceil(totalBills / perPage);
@@ -712,11 +708,11 @@ export default {
           ].join("-");
           const q = query(billsRef, where("DATE", ">=", queryStartDate), where("DATE", "<=", queryEndDate), orderBy("DATE", "desc"));
           const querySnapshot3 = await getDocs(q);
-          myBills = [];
+          this.bills = [];
           querySnapshot3.forEach((doc) => {
             let bill = doc.data();
             bill.id = doc.id;
-            myBills.push(newBill(bill));
+            this.bills.push(newBill(bill));
           });
           this.loadNewBill(this.curPage);
         }
@@ -774,11 +770,11 @@ export default {
           ].join("-");
           const q = query(billsRef, where("DATE", ">=", queryStartDate), where("DATE", "<=", queryEndDate), orderBy("DATE", "desc"));
           const querySnapshot3 = await getDocs(q);
-          myBills = [];
+          this.bills = [];
           querySnapshot3.forEach((doc) => {
             let bill = doc.data();
             bill.id = doc.id;
-            myBills.push(newBill(bill));
+            this.bills.push(newBill(bill));
           });
           this.loadNewBill(1);
         }
@@ -803,11 +799,11 @@ export default {
         ].join("-");
         const q = query(billsRef, where("DATE", ">=", queryStartDate), where("DATE", "<=", queryEndDate), orderBy("DATE", "desc"));
         const querySnapshot3 = await getDocs(q);
-        myBills = [];
+        this.bills = [];
         querySnapshot3.forEach((doc) => {
           let bill = doc.data();
           bill.id = doc.id;
-          myBills.push(newBill(bill));
+          this.bills.push(newBill(bill));
         });
         this.loadNewBill(this.curPage);
       }
@@ -1122,23 +1118,6 @@ export default {
         disabled: isDisabled
       };
     },
-    getFilteredBills(bills, obj) {
-      var startDate = [
-        obj.startDate.year,
-        obj.startDate.month,
-        obj.startDate.day
-      ].join("-");
-      var endDate = [obj.endDate.year, obj.endDate.month, obj.endDate.day].join(
-        "-"
-      );
-      var start = new Date(startDate);
-      var end = new Date(endDate);
-      var result = bills.filter(function (a) {
-        var date = new Date(a.DATE);
-        return date >= start && date <= end;
-      });
-      return result;
-    },
     changeBillDate(obj) {
       this.billSelected.year = obj.year;
       this.billSelected.month = obj.month;
@@ -1203,7 +1182,7 @@ export default {
         const errorCode = error.code;
         const errorMessage = error.message;
         localStorage.removeItem("uid");
-        this.login_errMsg = errorMessage;
+        this.login_errMsg = "("+errorCode+")"+errorMessage;
       });
     },
     logout() {
@@ -1264,23 +1243,23 @@ export default {
       const q = query(billsRef, where("DATE", ">=", queryStartDate), where("DATE", "<=", queryEndDate), orderBy("DATE", "desc"));
       const querySnapshot3 = await getDocs(q);
       const querySnapshot4 = await getDocs(collection(db, "BOOK/BOOK001/BILL_template"));
-      myAccounts = [];
+      this.accounts = [];
       querySnapshot1.forEach((doc) => {
         let acc = doc.data();
         acc.id = doc.id;
-        myAccounts.push(newAcc(acc))
+        this.accounts.push(newAcc(acc))
       });
-      myCategories = [];
+      this.categories = [];
       querySnapshot2.forEach((doc) => {
         let cat = doc.data();
         cat.id = doc.id;
-        myCategories.push(newCat(cat));
+        this.categories.push(newCat(cat));
       });;
-      myBills = [];
+      this.bills = [];
       querySnapshot3.forEach((doc) => {
         let bill = doc.data();
         bill.id = doc.id;
-        myBills.push(newBill(bill));
+        this.bills.push(newBill(bill));
       });
       this.billTemplates = [];
       querySnapshot4.forEach((doc) => {
@@ -1315,6 +1294,7 @@ export default {
           this.billSelected.year = year;
           this.billSelected.month = month;
           this.billSelected.day = day;
+          this.billSelected.DATE = [year, month, day].join("-");
           return;
         }
       }
@@ -1359,14 +1339,13 @@ export default {
       }
     },
     async delBillTemplate() {
-      if(confirm("确定删除模板吗？")) {
-        var billName = this.billSelected.NAME;
-        var billTemplates = this.billTemplates;
-        var len = billTemplates.length;
-        var id = "";
-        for (let i = 0; i < len; i++) {
-          if (billName==billTemplates[i].NAME) {
-            id = billTemplates[i].id;
+      var billName = this.billSelected.NAME;
+      var billTemplates = this.billTemplates;
+      var len = billTemplates.length;
+      for (let i = 0; i < len; i++) {
+        if (billName==billTemplates[i].NAME) {
+          var id = billTemplates[i].id;
+          if(confirm("确定删除模板吗？")) {
             await deleteDoc(doc(db, "BOOK/BOOK001/BILL_template", id));
             const querySnapshot4 = await getDocs(collection(db, "BOOK/BOOK001/BILL_template"));
             this.billTemplates = [];
@@ -1380,8 +1359,8 @@ export default {
             return;
           }
         }
-        alert("没有这个模板");
       }
+      alert("没有这个模板");
     }
   },
   created() {
