@@ -5,13 +5,13 @@ on: [push, pull_request]
 jobs:
   cd:
     runs-on: ${{ matrix.os }}
-    env:
-      VITE_apiKey : ${{ secrets.VITE_apiKey }}
-      VITE_authDomain : ${{ secrets.VITE_authDomain }}
-      VITE_projectId : ${{ secrets.VITE_projectId }}
-      VITE_storageBucket : ${{ secrets.VITE_storageBucket }}
-      VITE_messagingSenderId : ${{ secrets.VITE_messagingSenderId }}
-      VITE_appId : ${{ secrets.VITE_appId }}
+#     env:
+#       VITE_apiKey : ${{ secrets.VITE_apiKey }}
+#       VITE_authDomain : ${{ secrets.VITE_authDomain }}
+#       VITE_projectId : ${{ secrets.VITE_projectId }}
+#       VITE_storageBucket : ${{ secrets.VITE_storageBucket }}
+#       VITE_messagingSenderId : ${{ secrets.VITE_messagingSenderId }}
+#       VITE_appId : ${{ secrets.VITE_appId }}
       
     strategy:
       matrix:
@@ -21,7 +21,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@master
-
+      - name: Create .env file
+        run: echo "${{ secrets.ENV_FILE }}" > .env
       - name: Setup node env
         uses: actions/setup-node@v2.1.2
         with:
