@@ -419,6 +419,8 @@ var isLoggedin = false;
 var uid = localStorage.getItem("uid");
 if (uid) {
   isLoggedin = true;
+} else {
+  uid = "";
 }
 //firebase config end
 var newBill = function (bill) {
@@ -531,7 +533,7 @@ export default {
       isLoggedin,
       isGuestMode: false,
       login_errMsg: "",
-      uid: "",
+      uid,
 		};
   },
   computed: {
@@ -697,7 +699,7 @@ export default {
           await setDoc(doc(db, "BOOK/"+uid+"/BILL", bill.id), bill);
           this.isShowOverlay = false;
           this.isShowBill = false;
-          const billsRef = collection(db, "BOOK/BOOK001/BILL");
+          const billsRef = collection(db, "BOOK/"+uid+"/BILL");
           var queryStartDate = [
             this.filter.startDate.year,
             this.filter.startDate.month,
@@ -760,7 +762,7 @@ export default {
           //提交新账单
           this.isShowOverlay = false;
           this.isShowBill = false;
-          const billsRef = collection(db, "BOOK/BOOK001/BILL");
+          const billsRef = collection(db, "BOOK/"+uid+"/BILL");
           var queryStartDate = [
             this.filter.startDate.year,
             this.filter.startDate.month,
@@ -788,8 +790,9 @@ export default {
     async delBill(id) {
       if (confirm("确认删除吗？")) {
         //删除之后重新载入
-        await deleteDoc(doc(db, "BOOK/BOOK001/BILL", id));
-        const billsRef = collection(db, "BOOK/BOOK001/BILL");
+        var uid = this.uid;
+        await deleteDoc(doc(db, "BOOK/"+uid+"/BILL", id));
+        const billsRef = collection(db, "BOOK/"+uid+"/BILL");
         var queryStartDate = [
           this.filter.startDate.year,
           this.filter.startDate.month,
@@ -1231,12 +1234,13 @@ export default {
       }
     },
     async init() {
+      var uid = this.uid;
       var dateObj = this.getLastMonth();
       this.filter.startDate = dateObj.startDate;
       this.filter.endDate = dateObj.endDate;
-      const querySnapshot1 = await getDocs(collection(db, "BOOK/BOOK001/ACCOUNT"));
-      const querySnapshot2 = await getDocs(collection(db, "BOOK/BOOK001/CATEGORY"));
-      const billsRef = collection(db, "BOOK/BOOK001/BILL");
+      const querySnapshot1 = await getDocs(collection(db, "BOOK/"+uid+"/ACCOUNT"));
+      const querySnapshot2 = await getDocs(collection(db, "BOOK/"+uid+"/CATEGORY"));
+      const billsRef = collection(db, "BOOK/"+uid+"/BILL");
       var queryStartDate = [
         this.filter.startDate.year,
         this.filter.startDate.month,
@@ -1249,7 +1253,7 @@ export default {
       ].join("-");
       const q = query(billsRef, where("DATE", ">=", queryStartDate), where("DATE", "<=", queryEndDate), orderBy("DATE", "desc"));
       const querySnapshot3 = await getDocs(q);
-      const querySnapshot4 = await getDocs(collection(db, "BOOK/BOOK001/BILL_template"));
+      const querySnapshot4 = await getDocs(collection(db, "BOOK/"+uid+"/BILL_template"));
       this.accounts = [];
       querySnapshot1.forEach((doc) => {
         let acc = doc.data();
@@ -1320,7 +1324,7 @@ export default {
             id = billTemplates[i].id;
             bill.id = id;
             await setDoc(doc(db, "BOOK/"+uid+"/BILL_template", id), bill);
-            const querySnapshot4 = await getDocs(collection(db, "BOOK/BOOK001/BILL_template"));
+            const querySnapshot4 = await getDocs(collection(db, "BOOK/"+uid+"/BILL_template"));
             this.billTemplates = [];
             this.billTemplateOption = [];
             querySnapshot4.forEach((doc) => {
@@ -1335,7 +1339,7 @@ export default {
         id = len<9?"template00"+(len+1):len<99?"template0"+(len+1):"template"+(len+1);
         bill.id = id;
         await setDoc(doc(db, "BOOK/"+uid+"/BILL_template", id), bill);
-        const querySnapshot4 = await getDocs(collection(db, "BOOK/BOOK001/BILL_template"));
+        const querySnapshot4 = await getDocs(collection(db, "BOOK/"+uid+"/BILL_template"));
         this.billTemplates = [];
         this.billTemplateOption = [];
         querySnapshot4.forEach((doc) => {
@@ -1349,13 +1353,14 @@ export default {
     async delBillTemplate() {
       var billName = this.billSelected.NAME;
       var billTemplates = this.billTemplates;
+      var uid = this.uid;
       var len = billTemplates.length;
       for (let i = 0; i < len; i++) {
         if (billName==billTemplates[i].NAME) {
           var id = billTemplates[i].id;
           if(confirm("确定删除模板吗？")) {
-            await deleteDoc(doc(db, "BOOK/BOOK001/BILL_template", id));
-            const querySnapshot4 = await getDocs(collection(db, "BOOK/BOOK001/BILL_template"));
+            await deleteDoc(doc(db, "BOOK/"+uid+"/BILL_template", id));
+            const querySnapshot4 = await getDocs(collection(db, "BOOK/"+uid+"/BILL_template"));
             this.billTemplates = [];
             this.billTemplateOption = [];
             querySnapshot4.forEach((doc) => {
