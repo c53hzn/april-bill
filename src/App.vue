@@ -479,9 +479,9 @@ export default {
     Login,
     DatePickerUnit,
   },
-	name: "April-Bill",
-	data() {
-		return {
+  name: "April-Bill",
+  data() {
+    return {
       perPageSelected: 10,
       curPage: 99,
       prevPage: 0,
@@ -534,7 +534,7 @@ export default {
       isGuestMode: false,
       login_errMsg: "",
       uid,
-		};
+    };
   },
   computed: {
     prevNext() {
@@ -554,7 +554,7 @@ export default {
     }
   },
   methods: {
-  	loadNewBill(pageNum) {
+    loadNewBill(pageNum) {
       var totalBills = this.bills.length;
       var perPage = this.perPageSelected;
       var lastPage = Math.ceil(totalBills / perPage);
