@@ -531,6 +531,7 @@ export default {
       isLoggedin,
       isGuestMode: false,
       login_errMsg: "",
+      uid: "",
 		};
   },
   computed: {
@@ -683,6 +684,7 @@ export default {
       }
       var isOK_3 = !!this.billSelected.CATEGORY && !!this.billSelected.DATE;
       var isOK_4 = !!this.billSelected.NATURE;
+      var uid = this.uid;
       if (isOK_1 && isOK_2 && isOK_3 && isOK_4) {
         if (confirm("确认更新吗？")) {
           var bill = newBill(this.billSelected);
@@ -692,7 +694,7 @@ export default {
             this.billSelected.day
           ].join("-");
 
-          await setDoc(doc(db, "BOOK/BOOK001/BILL", bill.id), bill);
+          await setDoc(doc(db, "BOOK/"+uid+"/BILL", bill.id), bill);
           this.isShowOverlay = false;
           this.isShowBill = false;
           const billsRef = collection(db, "BOOK/BOOK001/BILL");
@@ -730,6 +732,7 @@ export default {
       }
       var isOK_3 = !!this.billSelected.CATEGORY && !!this.billSelected.DATE;
       var isOK_4 = !!this.billSelected.NATURE;
+      var uid = this.uid;
       if (isOK_1 && isOK_2 && isOK_3 && isOK_4) {
         if (confirm("确认新建吗？")) {
           var date = new Date();
@@ -753,7 +756,7 @@ export default {
           ].join("-");
           bill.id = newID;
           //此处提交新账单   
-          await setDoc(doc(db, "BOOK/BOOK001/BILL", bill.id), bill);
+          await setDoc(doc(db, "BOOK/"+uid+"/BILL", bill.id), bill);
           //提交新账单
           this.isShowOverlay = false;
           this.isShowBill = false;
@@ -819,6 +822,7 @@ export default {
     async updateAcc() {
       if (confirm("确认更新吗？")) {
         var accArr = this.accEditing;
+        var uid = this.uid;
         this.accounts = [];
         for (let i = 0; i < accArr.length; i++) {
           let idNum = i < 9 ? "00" + (i+1) : i < 99 ? "0" + (i+1) : i+1;
@@ -828,13 +832,13 @@ export default {
               NAME: accArr[i].NAME,
               TYPE: accArr[i].TYPE
             });
-            await setDoc(doc(db, "BOOK/BOOK001/ACCOUNT", accArr[i].id),{
+            await setDoc(doc(db, "BOOK/"+uid+"/ACCOUNT", accArr[i].id),{
               id: "ACC" + idNum,
               NAME: accArr[i].NAME,
               TYPE: accArr[i].TYPE
             });
           } else {
-            await deleteDoc(doc(db, "BOOK/BOOK001/ACCOUNT", accArr[i].id));
+            await deleteDoc(doc(db, "BOOK/"+uid+"/ACCOUNT", accArr[i].id));
           }
         }
         this.hideOverlay();
@@ -851,6 +855,7 @@ export default {
     },
     async updateCat() {
       if (confirm("确认更新吗？")) {
+        var uid = this.uid;
         var catArr = this.catEditing;
         this.categories = [{ id: "CAT000", NAME: "转账", TYPE: "转账" }];
         for (let i = 0; i < catArr.length; i++) {
@@ -861,13 +866,13 @@ export default {
               NAME: catArr[i].NAME,
               TYPE: catArr[i].TYPE
             });
-            await setDoc(doc(db, "BOOK/BOOK001/CATEGORY", catArr[i].id),{
+            await setDoc(doc(db, "BOOK/"+uid+"/CATEGORY", catArr[i].id),{
               id: "CAT" + idNum,
               NAME: catArr[i].NAME,
               TYPE: catArr[i].TYPE
             });
           } else {
-            await deleteDoc(doc(db, "BOOK/BOOK001/CATEGORY", catArr[i].id));
+            await deleteDoc(doc(db, "BOOK/"+uid+"/CATEGORY", catArr[i].id));
           }
         }
         this.hideOverlay();
@@ -1173,6 +1178,7 @@ export default {
       signInWithEmailAndPassword(auth, email, password)
       .then((userCredential) => {
         // Signed in 
+        this.uid = userCredential.user.uid;
         localStorage.setItem("uid",userCredential.user.uid);
         this.isLoggedin = true;
         this.login_errMsg = "";
@@ -1188,6 +1194,7 @@ export default {
     logout() {
       signOut(auth).then(() => {
         // Sign-out successful.
+        this.uid = "";
         localStorage.removeItem("uid");
         this.isLoggedin = false;
       }).catch((error) => {
@@ -1307,11 +1314,12 @@ export default {
         var bill = newBill(this.billSelected);
         bill.DATE = "";
         var id = "";
+        var uid = this.uid;
         for (let i = 0; i < len; i++) {
           if (billName==billTemplates[i].NAME) {
             id = billTemplates[i].id;
             bill.id = id;
-            await setDoc(doc(db, "BOOK/BOOK001/BILL_template", id), bill);
+            await setDoc(doc(db, "BOOK/"+uid+"/BILL_template", id), bill);
             const querySnapshot4 = await getDocs(collection(db, "BOOK/BOOK001/BILL_template"));
             this.billTemplates = [];
             this.billTemplateOption = [];
@@ -1326,7 +1334,7 @@ export default {
         }
         id = len<9?"template00"+(len+1):len<99?"template0"+(len+1):"template"+(len+1);
         bill.id = id;
-        await setDoc(doc(db, "BOOK/BOOK001/BILL_template", id), bill);
+        await setDoc(doc(db, "BOOK/"+uid+"/BILL_template", id), bill);
         const querySnapshot4 = await getDocs(collection(db, "BOOK/BOOK001/BILL_template"));
         this.billTemplates = [];
         this.billTemplateOption = [];

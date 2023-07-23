@@ -5,13 +5,6 @@ on: [push, pull_request]
 jobs:
   cd:
     runs-on: ${{ matrix.os }}
-#     env:
-#       VITE_apiKey : ${{ secrets.VITE_apiKey }}
-#       VITE_authDomain : ${{ secrets.VITE_authDomain }}
-#       VITE_projectId : ${{ secrets.VITE_projectId }}
-#       VITE_storageBucket : ${{ secrets.VITE_storageBucket }}
-#       VITE_messagingSenderId : ${{ secrets.VITE_messagingSenderId }}
-#       VITE_appId : ${{ secrets.VITE_appId }}
       
     strategy:
       matrix:
