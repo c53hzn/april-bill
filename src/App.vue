@@ -554,7 +554,50 @@ export default {
     }
   },
   methods: {
-    loadNewBill(pageNum) {
+    async loadNewBill(pageNum) {
+      var uid = this.uid;
+      const querySnapshot1 = await getDocs(collection(db, "BOOK/"+uid+"/ACCOUNT"));
+      const querySnapshot2 = await getDocs(collection(db, "BOOK/"+uid+"/CATEGORY"));
+      const billsRef = collection(db, "BOOK/"+uid+"/BILL");
+      var queryStartDate = [
+        this.filter.startDate.year,
+        this.filter.startDate.month,
+        this.filter.startDate.day
+      ].join("-");
+      var queryEndDate = [
+        this.filter.endDate.year,
+        this.filter.endDate.month,
+        this.filter.endDate.day
+      ].join("-");
+      const q = query(billsRef, where("DATE", ">=", queryStartDate), where("DATE", "<=", queryEndDate), orderBy("DATE", "desc"));
+      const querySnapshot3 = await getDocs(q);
+      const querySnapshot4 = await getDocs(collection(db, "BOOK/"+uid+"/BILL_template"));
+      this.accounts = [];
+      querySnapshot1.forEach((doc) => {
+        let acc = doc.data();
+        acc.id = doc.id;
+        this.accounts.push(newAcc(acc))
+      });
+      this.categories = [];
+      querySnapshot2.forEach((doc) => {
+        let cat = doc.data();
+        cat.id = doc.id;
+        this.categories.push(newCat(cat));
+      });;
+      this.bills = [];
+      querySnapshot3.forEach((doc) => {
+        let bill = doc.data();
+        bill.id = doc.id;
+        this.bills.push(newBill(bill));
+      });
+      this.billTemplateOption = [];
+      this.billTemplates = [];
+      querySnapshot4.forEach((doc) => {
+        let temp = doc.data();
+        temp.id = doc.id;
+        this.billTemplateOption.push(temp.NAME);
+        this.billTemplates.push(newBill(temp));
+      });
       var totalBills = this.bills.length;
       var perPage = this.perPageSelected;
       var lastPage = Math.ceil(totalBills / perPage);
@@ -590,9 +633,6 @@ export default {
       this.curPageBills = paginatedBills;
       this.prevPage = curPage - 1;
       this.nextPage = curPage == lastPage ? 0 : curPage + 1;
-    },
-    loadAccCat() {
-
     },
     goToPrev() {
       if (this.prevPage == 0) return;
@@ -699,25 +739,6 @@ export default {
           await setDoc(doc(db, "BOOK/"+uid+"/BILL", bill.id), bill);
           this.isShowOverlay = false;
           this.isShowBill = false;
-          const billsRef = collection(db, "BOOK/"+uid+"/BILL");
-          var queryStartDate = [
-            this.filter.startDate.year,
-            this.filter.startDate.month,
-            this.filter.startDate.day
-          ].join("-");
-          var queryEndDate = [
-            this.filter.endDate.year,
-            this.filter.endDate.month,
-            this.filter.endDate.day
-          ].join("-");
-          const q = query(billsRef, where("DATE", ">=", queryStartDate), where("DATE", "<=", queryEndDate), orderBy("DATE", "desc"));
-          const querySnapshot3 = await getDocs(q);
-          this.bills = [];
-          querySnapshot3.forEach((doc) => {
-            let bill = doc.data();
-            bill.id = doc.id;
-            this.bills.push(newBill(bill));
-          });
           this.loadNewBill(this.curPage);
         }
       } else {
@@ -762,25 +783,6 @@ export default {
           //提交新账单
           this.isShowOverlay = false;
           this.isShowBill = false;
-          const billsRef = collection(db, "BOOK/"+uid+"/BILL");
-          var queryStartDate = [
-            this.filter.startDate.year,
-            this.filter.startDate.month,
-            this.filter.startDate.day
-          ].join("-");
-          var queryEndDate = [
-            this.filter.endDate.year,
-            this.filter.endDate.month,
-            this.filter.endDate.day
-          ].join("-");
-          const q = query(billsRef, where("DATE", ">=", queryStartDate), where("DATE", "<=", queryEndDate), orderBy("DATE", "desc"));
-          const querySnapshot3 = await getDocs(q);
-          this.bills = [];
-          querySnapshot3.forEach((doc) => {
-            let bill = doc.data();
-            bill.id = doc.id;
-            this.bills.push(newBill(bill));
-          });
           this.loadNewBill(1);
         }
       } else {
@@ -792,25 +794,6 @@ export default {
         //删除之后重新载入
         var uid = this.uid;
         await deleteDoc(doc(db, "BOOK/"+uid+"/BILL", id));
-        const billsRef = collection(db, "BOOK/"+uid+"/BILL");
-        var queryStartDate = [
-          this.filter.startDate.year,
-          this.filter.startDate.month,
-          this.filter.startDate.day
-        ].join("-");
-        var queryEndDate = [
-          this.filter.endDate.year,
-          this.filter.endDate.month,
-          this.filter.endDate.day
-        ].join("-");
-        const q = query(billsRef, where("DATE", ">=", queryStartDate), where("DATE", "<=", queryEndDate), orderBy("DATE", "desc"));
-        const querySnapshot3 = await getDocs(q);
-        this.bills = [];
-        querySnapshot3.forEach((doc) => {
-          let bill = doc.data();
-          bill.id = doc.id;
-          this.bills.push(newBill(bill));
-        });
         this.loadNewBill(this.curPage);
       }
     },
@@ -835,13 +818,13 @@ export default {
               NAME: accArr[i].NAME,
               TYPE: accArr[i].TYPE
             });
-            await setDoc(doc(db, "BOOK/"+uid+"/ACCOUNT", accArr[i].id),{
+            await setDoc(doc(db, "BOOK/"+uid+"/ACCOUNT", "ACC"+idNum),{
               id: "ACC" + idNum,
               NAME: accArr[i].NAME,
               TYPE: accArr[i].TYPE
             });
           } else {
-            await deleteDoc(doc(db, "BOOK/"+uid+"/ACCOUNT", accArr[i].id));
+            await deleteDoc(doc(db, "BOOK/"+uid+"/ACCOUNT", "ACC"+idNum));
           }
         }
         this.hideOverlay();
@@ -862,20 +845,20 @@ export default {
         var catArr = this.catEditing;
         this.categories = [{ id: "CAT000", NAME: "转账", TYPE: "转账" }];
         for (let i = 0; i < catArr.length; i++) {
-          if (catArr[i].NAME && catArr[i].TYPE) {
-            let idNum = i < 9 ? "00" + (i+1) : i < 99 ? "0" + (i+1) : (i+1);
+          let idNum = i < 9 ? "00" + (i+1) : i < 99 ? "0" + (i+1) : (i+1);
+          if (catArr[i].NAME && catArr[i].TYPE) { 
             this.categories.push({
               id: "CAT" + idNum,
               NAME: catArr[i].NAME,
               TYPE: catArr[i].TYPE
             });
-            await setDoc(doc(db, "BOOK/"+uid+"/CATEGORY", catArr[i].id),{
+            await setDoc(doc(db, "BOOK/"+uid+"/CATEGORY", "CAT"+idNum),{
               id: "CAT" + idNum,
               NAME: catArr[i].NAME,
               TYPE: catArr[i].TYPE
             });
           } else {
-            await deleteDoc(doc(db, "BOOK/"+uid+"/CATEGORY", catArr[i].id));
+            await deleteDoc(doc(db, "BOOK/"+uid+"/CATEGORY", "CAT"+idNum));
           }
         }
         this.hideOverlay();
@@ -1191,7 +1174,7 @@ export default {
         const errorCode = error.code;
         const errorMessage = error.message;
         localStorage.removeItem("uid");
-        this.login_errMsg = "("+errorCode+")"+errorMessage;
+        this.login_errMsg = errorMessage;
       });
     },
     logout() {
@@ -1233,52 +1216,10 @@ export default {
         }
       }
     },
-    async init() {
-      var uid = this.uid;
+    init() {
       var dateObj = this.getLastMonth();
       this.filter.startDate = dateObj.startDate;
       this.filter.endDate = dateObj.endDate;
-      const querySnapshot1 = await getDocs(collection(db, "BOOK/"+uid+"/ACCOUNT"));
-      const querySnapshot2 = await getDocs(collection(db, "BOOK/"+uid+"/CATEGORY"));
-      const billsRef = collection(db, "BOOK/"+uid+"/BILL");
-      var queryStartDate = [
-        this.filter.startDate.year,
-        this.filter.startDate.month,
-        this.filter.startDate.day
-      ].join("-");
-      var queryEndDate = [
-        this.filter.endDate.year,
-        this.filter.endDate.month,
-        this.filter.endDate.day
-      ].join("-");
-      const q = query(billsRef, where("DATE", ">=", queryStartDate), where("DATE", "<=", queryEndDate), orderBy("DATE", "desc"));
-      const querySnapshot3 = await getDocs(q);
-      const querySnapshot4 = await getDocs(collection(db, "BOOK/"+uid+"/BILL_template"));
-      this.accounts = [];
-      querySnapshot1.forEach((doc) => {
-        let acc = doc.data();
-        acc.id = doc.id;
-        this.accounts.push(newAcc(acc))
-      });
-      this.categories = [];
-      querySnapshot2.forEach((doc) => {
-        let cat = doc.data();
-        cat.id = doc.id;
-        this.categories.push(newCat(cat));
-      });;
-      this.bills = [];
-      querySnapshot3.forEach((doc) => {
-        let bill = doc.data();
-        bill.id = doc.id;
-        this.bills.push(newBill(bill));
-      });
-      this.billTemplates = [];
-      querySnapshot4.forEach((doc) => {
-        let temp = doc.data();
-        temp.id = doc.id;
-        this.billTemplateOption.push(temp.NAME);
-        this.billTemplates.push(newBill(temp));
-      });
       this.loadNewBill(1);
     },
     loadToday() {
