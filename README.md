@@ -1,4 +1,4 @@
-# april-bill
+# april-bill intro
 
 An SPA app for personal bookkeeping purpose, static front-end page with serverless service from Firebase.
 
@@ -8,7 +8,7 @@ Frameworks used: Vue and Vite.
 
 使用的框架: Vue 和 Vite。
 
-# base url
+## base url
 
 in `vite.config.js` file
 
@@ -18,7 +18,7 @@ export default defineConfig({
 })
 ```
 
-# dev server
+## dev server
 
 ```
 npm run dev
@@ -28,7 +28,7 @@ Hot reload is supported.
 
 The cmd console will display 2 urls, `localhost:3000` is for current dev computer to access server, `local IP:3000` is for other devices in the same wifi environment to access server.
 
-# generate static site
+## generate static site
 
 ```
 npm run build
@@ -36,7 +36,7 @@ npm run build
 
 static site files are generated under `\dist` folder, you can deploy files to static server.
 
-# preview static site
+## preview static site
 
 ```
 npm run serve
@@ -78,6 +78,40 @@ npm run serve
 - 删除现有账单（更新数据库，重新加载账单）
 - 新建/删除账单模板（更新数据库，重新加载模板）
 - 应用账单模板
+
+# 系统界面UI
+
+## 登录页面
+
+![image](https://github.com/c53hzn/april-bill/assets/30020736/af379cb0-54bb-4e5f-8fef-a17e74d5c4bb)
+
+## 登入后页面
+
+![image](https://github.com/c53hzn/april-bill/assets/30020736/731d4181-d0f4-466f-93fa-fd1df54e32f5)
+
+## 编辑账户选项
+
+![image](https://github.com/c53hzn/april-bill/assets/30020736/5e5a6362-c564-4c22-a6c1-703126f5784d)
+
+## 编辑分类选项
+
+![image](https://github.com/c53hzn/april-bill/assets/30020736/53d0ce30-63b1-4a84-8db4-90fdd87ca035)
+
+## 新增/修改/查看账单
+
+![image](https://github.com/c53hzn/april-bill/assets/30020736/b0c10081-7dbb-4b57-b79b-7d0ac7214682)
+
+## 新增/修改/应用账单模板
+
+![image](https://github.com/c53hzn/april-bill/assets/30020736/b5762682-f9a4-47b9-8606-fb48d4e22bfc)
+
+## 查看账户交易汇总
+
+![image](https://github.com/c53hzn/april-bill/assets/30020736/404612cd-9cbf-45f1-8534-14ac92854987)
+
+## 查看分类交易汇总
+
+![image](https://github.com/c53hzn/april-bill/assets/30020736/8ab78426-0738-486e-8fe8-4f849c3083f3)
 
 # 数据库和服务器
 
