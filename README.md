@@ -52,11 +52,11 @@ npm run serve
 ## 加载账单
 
 - 显示默认时间区间的账单（默认时间过去一个月，会根据月份横跨不同的天数）
-- 筛选特定时间区间的账单（加载一次call一次API，翻页不call API）
-- 显示账单流水汇总
 - 设置每页显示条数
-- 分页显示
-- 在本页账单内搜索关键字
+- 筛选特定时间区间的账单（加载一次call一次API）
+- 显示交易汇总（加载一次计算一次）
+- 分页显示（翻页不call API）
+- 在本页账单内搜索关键字（搜索不call API）
 
 ## 查看汇总
 
@@ -70,12 +70,12 @@ npm run serve
 
 ## 账单
 
-- 新增空白账单
+- 新增空白账单（更新数据库，重新加载账单）
+- 根据收入或支出性质来加载分类和账户的选项
 - 查看现有账单
 - 更新现有账单（更新数据库，重新加载账单）
 - 另存现有账单（更新数据库，重新加载账单）
 - 删除现有账单（更新数据库，重新加载账单）
-- 根据收入或支出性质来加载分类和账户的选项
 - 新建/删除账单模板（更新数据库，重新加载模板）
 - 应用账单模板
 
@@ -117,25 +117,25 @@ const firebaseConfig = {
 
 由于firebase的秘钥在电脑的环境变量里，自动部署的时候访问不到，这样就无法正确地生成静态文件并部署到静态服务器。
 
-需要做的是进入GitHub的repo的settings页面，左侧菜单里找到`Secrets and Variables`，点开之后进入 `Actions` 的页面，新增五个 `repository secrets`，输入秘钥。
+需要做的是进入GitHub的repo的settings页面，左侧菜单里找到`Secrets and Variables`，点开之后进入 `Actions` 的页面，新建一个secret变量，变量名可以叫 `ENV_FILE`，变量内容输入 `.env` 文件里的内容
 
-然后在GitHub Actions的 `workflows` 文件的 `jobs` 的详情里调用五个环境变量。
+```
+VITE_apiKey = "***"
+VITE_authDomain = "***.firebaseapp.com"
+VITE_projectId = "***"
+VITE_storageBucket = "***.appspot.com"
+VITE_messagingSenderId = "***"
+VITE_appId = "***"
+```
+
+然后在工作流程文件的 `steps` 当中新增一步
 
 ```yml
 jobs:
-  cd:
-    runs-on: ${{ matrix.os }}
-    env:
-      VITE_apiKey : ${{ secrets.VITE_apiKey }}
-      VITE_authDomain : ${{ secrets.VITE_authDomain }}
-      VITE_projectId : ${{ secrets.VITE_projectId }}
-      VITE_storageBucket : ${{ secrets.VITE_storageBucket }}
-      VITE_messagingSenderId : ${{ secrets.VITE_messagingSenderId }}
-      VITE_appId : ${{ secrets.VITE_appId }}
+  my_job:
+    steps:
+    - name: Create .env file
+      run: echo "${{ secrets.ENV_FILE }}" > .env
 ```
 
-这样就可以自动部署静态文件，并正确地访问动态服务器了。
-
-# bug fix
-
-- 编辑并更新账户和分类之后，第一次查看现有账单，选项是新的，修改并保存之后，再查看别的账单，发现选项是旧的。（2023-07-22不知道改了哪里，现在无法复现了）
+这样会在 `workflow` 的部署环境下新建一个 `.env` 文件，那么在后面的步骤中，工程文件就能访问到 `.env` 里面的环境变量了。
