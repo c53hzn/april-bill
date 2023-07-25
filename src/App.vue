@@ -278,11 +278,17 @@
       </div>
       <div class="view-container" :class="{ show: isShowAcc }">
         <div class="view-acc" v-for="(acc, i) in accEditing" :key="i">
-          账户:
-          <input v-model="acc.NAME" />
+          账户名:
+          <input v-model="acc.NAME" style="width:170px;"/>
           <br />
-          类型:
-          <input v-model="acc.TYPE" />
+          类型名:
+          <input v-model="acc.TYPE" style="width:170px;"/>
+          <br />
+          初始值:
+          <input v-model="acc.initialBalance" type="number" style="width:170px;"/>
+          <!-- <br />
+         现余额: 
+           <input v-model="acc.balance" disabled type="number" style="width:170px;"/> -->
         </div>
         <div style="text-align: center">
           <button @click="addAcc(accEditing.length)">新增账户</button>
@@ -329,7 +335,7 @@
           :class="getSumAccTypeClass(type[0].TYPE)"
         >
           <div class="view-acc" v-for="(acc, i) in type" :key="j + '-' + i">
-            <h3>{{ acc.NAME }}</h3>
+            <h3>{{ acc.NAME }} <span style="font-size:16px;">余额: {{ acc.balance }}</span></h3>
             <span class="sum-up">
               支出: &nbsp;
               <span class="txt-red">
@@ -402,7 +408,7 @@ import Login from "./components/Login.vue";
 import DatePickerUnit from "./components/DatePickerUnit.vue";
 //firebase config start
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.0.0/firebase-app.js";
-import { getFirestore,doc,getDocs,query, where, orderBy, setDoc,deleteDoc,collection  } from "https://www.gstatic.com/firebasejs/10.0.0/firebase-firestore.js";
+import { getFirestore,doc,getDoc,getDocs,query, where, orderBy, setDoc,deleteDoc,collection  } from "https://www.gstatic.com/firebasejs/10.0.0/firebase-firestore.js";
 import { getAuth, signInWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/10.0.0/firebase-auth.js";
 const firebaseConfig = {
   apiKey: import.meta.env.VITE_apiKey,
@@ -441,7 +447,9 @@ var newAcc = function (acc) {
   return {
     id: acc.id,
     NAME: acc.NAME,
-    TYPE: acc.TYPE
+    TYPE: acc.TYPE,
+    initialBalance: acc.initialBalance,
+    balance: acc.balance
   };
 };
 var newCat = function (cat) {
@@ -504,6 +512,7 @@ export default {
       isShowSumCat: false,
       isUpdateBill: true,
       billSelected: {},
+      billSelectedCopy: {},
       billTemplateName: "",
       billTemplates: [],
       accEditing: [],
@@ -652,6 +661,7 @@ export default {
         var bill = this.curPageBills[idx];
         this.isUpdateBill = true;
         this.billSelected = newBill(bill);
+        this.billSelectedCopy = newBill(bill);
         this.billSelected.year = bill.DATE.substring(0, 4);
         this.billSelected.month = bill.DATE.substring(5, 7);
         this.billSelected.day = bill.DATE.substring(8, 10);
@@ -736,6 +746,37 @@ export default {
             this.billSelected.day
           ].join("-");
 
+          //update account balance
+          var oldBill = this.billSelectedCopy;
+          var reverseACC_IN = oldBill.ACC_IN;
+          var reverseACC_OUT = oldBill.ACC_OUT;
+          var reverseAmount = oldBill.AMOUNT;
+          var accArr = this.accounts;
+          for (let i = 0; i < accArr.length; i++) {
+            if (accArr[i].NAME==reverseACC_IN) {
+              let num = accArr[i].balance*100 - reverseAmount*100;
+              accArr[i].balance = (num/100).toFixed(2);
+              await setDoc(doc(db, "BOOK/"+uid+"/ACCOUNT", accArr[i].id), accArr[i]);
+            }
+            if (accArr[i].NAME==reverseACC_OUT) {
+              let num = accArr[i].balance*100 + reverseAmount*100;
+              accArr[i].balance = (num/100).toFixed(2);
+              await setDoc(doc(db, "BOOK/"+uid+"/ACCOUNT", accArr[i].id), accArr[i]);
+            }
+            if (accArr[i].NAME==bill.ACC_OUT) {
+              let num = accArr[i].balance*100 - bill.AMOUNT*100;
+              accArr[i].balance = (num/100).toFixed(2);
+              await setDoc(doc(db, "BOOK/"+uid+"/ACCOUNT", accArr[i].id), accArr[i]);
+            }
+            if (accArr[i].NAME==bill.ACC_IN) {
+              let num = accArr[i].balance*100 + bill.AMOUNT*100;
+              accArr[i].balance = (num/100).toFixed(2);
+              console.log("ACC_IN+"+bill.AMOUNT)
+              await setDoc(doc(db, "BOOK/"+uid+"/ACCOUNT", accArr[i].id), accArr[i]);
+            }
+          }
+
+          //update bill
           await setDoc(doc(db, "BOOK/"+uid+"/BILL", bill.id), bill);
           this.isShowOverlay = false;
           this.isShowBill = false;
@@ -778,6 +819,22 @@ export default {
             this.billSelected.day
           ].join("-");
           bill.id = newID;
+
+          //update account balance
+          var accArr = this.accounts;
+          for (let i = 0; i < accArr.length; i++) {
+            if (accArr[i].NAME==bill.ACC_OUT) {
+              let num = accArr[i].balance*100 - bill.AMOUNT*100;
+              accArr[i].balance = (num/100).toFixed(2);
+              await setDoc(doc(db, "BOOK/"+uid+"/ACCOUNT", accArr[i].id), accArr[i]);
+            }
+            if (accArr[i].NAME==bill.ACC_IN) {
+              let num = accArr[i].balance*100 + bill.AMOUNT*100;
+              accArr[i].balance = (num/100).toFixed(2);
+              await setDoc(doc(db, "BOOK/"+uid+"/ACCOUNT", accArr[i].id), accArr[i]);
+            }
+          }
+
           //此处提交新账单   
           await setDoc(doc(db, "BOOK/"+uid+"/BILL", bill.id), bill);
           //提交新账单
@@ -816,12 +873,16 @@ export default {
             this.accounts.push({
               id: "ACC" + idNum,
               NAME: accArr[i].NAME,
-              TYPE: accArr[i].TYPE
+              TYPE: accArr[i].TYPE,
+              initialBalance: accArr[i].initialBalance,
+              balance: accArr[i].balance
             });
             await setDoc(doc(db, "BOOK/"+uid+"/ACCOUNT", "ACC"+idNum),{
               id: "ACC" + idNum,
               NAME: accArr[i].NAME,
-              TYPE: accArr[i].TYPE
+              TYPE: accArr[i].TYPE,
+              initialBalance: accArr[i].initialBalance,
+              balance: accArr[i].balance
             });
           } else {
             await deleteDoc(doc(db, "BOOK/"+uid+"/ACCOUNT", "ACC"+idNum));
@@ -946,6 +1007,8 @@ export default {
       for (let i = 0; i < accounts.length; i++) {
         accObj[accounts[i].NAME] = {
           TYPE: accounts[i].TYPE,
+          initialBalance: accounts[i].initialBalance,
+          balance: accounts[i].balance,
           bills: []
         };
       }
@@ -977,16 +1040,18 @@ export default {
         }
       }
       //计算每个账号的收入、支出、结余
-      var getSumObj = function (NAME, TYPE, bills) {
-        let expenseTotal = that.getExpenseTotal(bills, NAME);
-        let incomeTotal = that.getIncomeTotal(bills, NAME);
+      var getSumObj = function (NAME, TYPE, acc) {
+        let expenseTotal = that.getExpenseTotal(acc.bills, NAME);
+        let incomeTotal = that.getIncomeTotal(acc.bills, NAME);
         let reserveTotal = that.getReserveTotal(expenseTotal, incomeTotal);
+        let balance = acc.balance;
         return {
           NAME,
           TYPE,
           expenseTotal,
           incomeTotal,
-          reserveTotal
+          reserveTotal,
+          balance
         };
       };
       var result = [];
@@ -995,7 +1060,7 @@ export default {
         let typeArr = [];
         for (let m = 0; m < typeObj[tempType].length; m++) {
           let accName = typeObj[tempType][m];
-          let sumObj = getSumObj(accName, tempType, accObj[accName].bills);
+          let sumObj = getSumObj(accName, tempType, accObj[accName]);
           typeArr.push(sumObj);
         }
         result.push(typeArr);
