@@ -173,3 +173,83 @@ jobs:
 ```
 
 这样会在 `workflow` 的部署环境下新建一个 `.env` 文件，那么在后面的步骤中，工程文件就能访问到 `.env` 里面的环境变量了。
+
+# 导出账单并转移到APP
+
+之前在别的地方记了半年的账，导出来csv一看，其实也才几百条。
+
+在Excel或者WPS里面打开csv文件，将表头改成 `id` `DATE` `NAME` `NATURE` `CATEGORY` `ACC_OUT` `ACC_IN` `AMOUNT` `REMARK` `NOTES`，然后用公式自动生成 `BILL202307240101` 格式的 `id`，保存csv。
+
+此时要注意，我的APP需要的日期格式是 `YYYY-MM-DD` ，但是Excel或者WPS有个坏习惯，就是在识别到日期的时候自动转成 `YYYY/M/D` 的格式，所以我们需要手动调整一下，改对了之后再保存。
+
+然后在网上搜一个 `csv to json` 的工具，上传 `csv` 文件，拿到我们需要的 `json` 数据，此时不要保存成 `json`。为了方便使用，我们把它存成这样的 `bills.js` 文件。
+
+```js
+var bills = [{
+  id: "BILL202307240101",
+  DATE: "2023-07-24",
+  NATURE: "支出",
+  CATEGORY: "饮食",
+  NAME: "晚饭",
+  ACC_IN: "",
+  ACC_OUT: "信用卡A",
+  AMOUNT: 45.5,
+  REMARK: "",
+  NOTES: ""
+}];
+```
+
+然后在同文件夹下新建一个 `app.html` 文件，内容如下
+
+```html
+<head>
+  <meta charset="UTF-8">
+</head>
+
+<body>
+  asdf
+</body> 
+
+<script src="./bills.js"></script>
+
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.0.0/firebase-app.js";
+  import { getFirestore,doc,setDoc,collection  } from "https://www.gstatic.com/firebasejs/10.0.0/firebase-firestore.js";
+
+
+  // Your web app's Firebase configuration
+  const firebaseConfig = {
+    apiKey: "***",
+    authDomain: "***.firebaseapp.com",
+    projectId: "***",
+    storageBucket: "***.appspot.com",
+    messagingSenderId: "***",
+    appId: "***"
+  };
+
+  // Initialize Firebase
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+
+for (let i = 0; i < bills.length; i++) {
+  addBill(bills[i]);
+}
+
+async function addBill(bill) {
+  await setDoc(doc(db, `BOOK/${uid}/BILL`, bill.id), bill);
+}
+</script>
+```
+
+这是一个极简的导入账单的网页，直接在本机使用即可。
+
+网页一打开就会开始上传账单，网页和浏览器控制台不显示结果，但是你可以到浏览器的开发者工具的“网络”标签页查看，等到上传任务不再增多，就说明上传完了。
+
+这里有一个很重要的地方，那就是 `<head></head>` 里面一定要写明此html文档的文字编码
+
+```html
+<meta charset="UTF-8">
+```
+
+如果不写明是 `UTF-8` ，那么上传内容有中文的时候会变成乱码，而写了 `UTF-8` 就能上传正常的内容了。
