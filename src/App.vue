@@ -850,10 +850,9 @@ export default {
         var uid = this.uid;
 
         //update account balance
-        var oldBill = newBill(bill);
-        var reverseACC_IN = oldBill.ACC_IN;
-        var reverseACC_OUT = oldBill.ACC_OUT;
-        var reverseAmount = oldBill.AMOUNT;
+        var reverseACC_IN = bill.ACC_IN;
+        var reverseACC_OUT = bill.ACC_OUT;
+        var reverseAmount = bill.AMOUNT;
         var accArr = this.accounts;
         for (let i = 0; i < accArr.length; i++) {
           if (accArr[i].NAME==reverseACC_IN) {
@@ -867,9 +866,9 @@ export default {
             await setDoc(doc(db, "BOOK/"+uid+"/ACCOUNT", accArr[i].id), accArr[i]);
           }
         }
-        
+
         //删除之后重新载入
-        await deleteDoc(doc(db, "BOOK/"+uid+"/BILL", id));
+        await deleteDoc(doc(db, "BOOK/"+uid+"/BILL", bill.id));
         this.loadNewBill(this.curPage);
       }
     },
