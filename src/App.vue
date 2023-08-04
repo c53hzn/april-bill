@@ -132,7 +132,7 @@
                   <i class="fa-solid fa-eye"></i>
                 </span>
                 <br />
-                <span class="act-btn" title="删除" @click="delBill(bill.id)">
+                <span class="act-btn" title="删除" @click="delBill(bill)">
                   <i class="fa-solid fa-trash-can"></i>
                 </span>
               </td>
@@ -771,7 +771,6 @@ export default {
             if (accArr[i].NAME==bill.ACC_IN) {
               let num = accArr[i].balance*100 + bill.AMOUNT*100;
               accArr[i].balance = (num/100).toFixed(2);
-              console.log("ACC_IN+"+bill.AMOUNT)
               await setDoc(doc(db, "BOOK/"+uid+"/ACCOUNT", accArr[i].id), accArr[i]);
             }
           }
@@ -846,10 +845,30 @@ export default {
         alert("请填写所有必填项");
       }
     },
-    async delBill(id) {
+    async delBill(bill) {
       if (confirm("确认删除吗？")) {
-        //删除之后重新载入
         var uid = this.uid;
+
+        //update account balance
+        var oldBill = newBill(bill);
+        var reverseACC_IN = oldBill.ACC_IN;
+        var reverseACC_OUT = oldBill.ACC_OUT;
+        var reverseAmount = oldBill.AMOUNT;
+        var accArr = this.accounts;
+        for (let i = 0; i < accArr.length; i++) {
+          if (accArr[i].NAME==reverseACC_IN) {
+            let num = accArr[i].balance*100 - reverseAmount*100;
+            accArr[i].balance = (num/100).toFixed(2);
+            await setDoc(doc(db, "BOOK/"+uid+"/ACCOUNT", accArr[i].id), accArr[i]);
+          }
+          if (accArr[i].NAME==reverseACC_OUT) {
+            let num = accArr[i].balance*100 + reverseAmount*100;
+            accArr[i].balance = (num/100).toFixed(2);
+            await setDoc(doc(db, "BOOK/"+uid+"/ACCOUNT", accArr[i].id), accArr[i]);
+          }
+        }
+        
+        //删除之后重新载入
         await deleteDoc(doc(db, "BOOK/"+uid+"/BILL", id));
         this.loadNewBill(this.curPage);
       }
