@@ -286,9 +286,9 @@
           <br />
           初始值:
           <input v-model="acc.initialBalance" type="number" style="width:170px;"/>
-          <!-- <br />
+          <br />
          现余额: 
-           <input v-model="acc.balance" disabled type="number" style="width:170px;"/> -->
+           <input v-model="acc.balance" disabled type="number" style="width:170px;"/>
         </div>
         <div style="text-align: center">
           <button @click="addAcc(accEditing.length)">新增账户</button>
