@@ -112,68 +112,64 @@
         </div>
       </div>
       <div class="bills">
-        <table class="table table-striped">
-          <thead>
-            <th>操作</th>
-            <th style="min-width: 100px;">日期</th>
-            <th>事项</th>
-            <th>分类</th>
-            <th style="min-width: 150px;">账户</th>
-            <th>金额</th>
-          </thead>
-          <tbody class="table-group-divider">
+        <table class="table">
+          <tbody>
             <tr
               :class="searchResultClass[idx]"
               v-for="(bill, idx) in curPageBills"
               :key="bill.id"
             >
-              <td>
-                <span class="act-btn" title="查看详情" @click="showBillDetail(idx)">
-                  <i class="fa-solid fa-eye"></i>
-                </span>
-                <br />
-                <span class="act-btn" title="删除" @click="delBill(bill)">
-                  <i class="fa-solid fa-trash-can"></i>
-                </span>
-              </td>
-              <td>
-                <span style="display: inline-block">{{ bill.DATE }}</span>
-              </td>
-              <td>{{ bill.NAME }}</td>
-              <td>{{ bill.CATEGORY }}</td>
-              <td>
-                <i
-                  v-if="bill.ACC_OUT"
-                  style="color: red"
-                  class="fa-solid fa-arrow-down"
-                ></i>
-                {{ bill.ACC_OUT }}
-                <br v-if="bill.ACC_OUT" />
-                <i
-                  v-if="bill.ACC_IN"
-                  style="color: green"
-                  class="fa-solid fa-arrow-up"
-                ></i>
-                {{ bill.ACC_IN }}
-              </td>
-              <td>
-                <i
-                  v-if="bill.NATURE == '收入'"
-                  style="color: green"
-                  class="fa-solid fa-arrow-up"
-                ></i>
-                <i
-                  v-if="bill.NATURE == '支出'"
-                  style="color: red"
-                  class="fa-solid fa-arrow-down"
-                ></i>
-                <i
-                  v-if="bill.NATURE == '转账'"
-                  style="color: orange"
-                  class="fa-solid fa-repeat"
-                ></i>
-                <br />
-                {{ bill.AMOUNT }}
+              <td :class="{'date-decor':bill.DATE_display&&idx}">
+                <div class="text-start date" v-if="bill.DATE_display">
+                  {{ bill.DATE_display }}
+                </div>
+                <div>
+                  <div class="act-btn-container">
+                    <div class="act-btn" title="查看详情" @click="showBillDetail(idx)">
+                      <i class="fa-solid fa-eye"></i>
+                    </div>
+                    <div class="act-btn" title="删除" @click="delBill(bill)">
+                      <i class="fa-solid fa-trash-can"></i>
+                    </div>
+                  </div>
+                  <div class="bill-data-container">
+                    <div>
+                      <div class="bill-data">
+                        {{ bill.NAME }}
+                      </div>
+                      <div class="bill-data">
+                        <i
+                          v-if="bill.NATURE == '收入'"
+                          class="fa-solid fa-arrow-up green"
+                        ></i>
+                        <i
+                          v-if="bill.NATURE == '支出'"
+                          class="fa-solid fa-arrow-down red"
+                        ></i>
+                        <i
+                          v-if="bill.NATURE == '转账'"
+                          class="fa-solid fa-repeat orange"
+                        ></i>
+                        {{ bill.AMOUNT }}
+                      </div>
+                    </div>
+                    <div class=gray>
+                      <div v-if="bill.NATURE!='转账'" class="bill-data">{{ bill.CATEGORY }}</div>
+                      <div v-if="bill.ACC_OUT" class="bill-data">
+                        <i style="color: red"
+                        class="fa-solid fa-arrow-down"
+                      ></i>
+                      {{ bill.ACC_OUT }}
+                      </div>
+                      <div v-if="bill.ACC_IN" class="bill-data">
+                        <i style="color: green"
+                          class="fa-solid fa-arrow-up"
+                        ></i>
+                        {{ bill.ACC_IN }}
+                      </div>
+                    </div>
+                  </div>
+                </div>
               </td>
             </tr>
           </tbody>
@@ -639,6 +635,14 @@ export default {
       var lastPage = Math.ceil(totalBills / perPage);
       var skip = this.skipNumber();
       var paginatedBills = this.bills.slice(skip, skip + perPage);
+      paginatedBills[0].DATE_display = paginatedBills[0].DATE;
+      for (let i = 1; i < paginatedBills.length; i++) {
+        if (paginatedBills[i].DATE!=paginatedBills[i-1].DATE) {
+          paginatedBills[i].DATE_display = paginatedBills[i].DATE;
+        } else {
+          paginatedBills[i].DATE_display = "";
+        }
+      }
       this.curPageBills = paginatedBills;
       this.prevPage = curPage - 1;
       this.nextPage = curPage == lastPage ? 0 : curPage + 1;
@@ -1449,19 +1453,29 @@ select {
 }
 .bills {
   margin: 10px auto;
-  max-width: auto;
+  max-width: 800px;
+  text-align: left;
   border: solid gray 1px;
+}
+.act-btn-container {
+  padding-right: 20px;
+  width: 20%;
+  text-align: center;
+  display: inline-block;
+}
+.bill-data-container {
+  width: 80%;
+  display: inline-block;
+}
+.bill-data {
+  width: 50%;
+  display: inline-block;
 }
 .table {
   margin-bottom: 0;
   width: 100%;
-  min-width: 540px;
-}
-.table th {
-  width: 16.66%;
 }
 .table tr {
-  height: 66px;
   vertical-align: middle;
 }
 .loadbill-setting {
@@ -1549,6 +1563,9 @@ button.disabled {
   margin-right: 2px;
   content: "-";
 }
+.gray {
+  color: gray;
+}
 .green {
   color: green;
 }
@@ -1558,9 +1575,15 @@ button.disabled {
 .orange {
   color: orange;
 }
+.date {
+  margin-bottom: 20px;
+}
+.date-decor {
+  border-top: 2px solid silver;
+}
 @media all and (max-width: 450px) {
   .bills {
-    overflow-x: scroll;
+    width: 100%;
   }
   .view-container {
     max-height: 420px;
