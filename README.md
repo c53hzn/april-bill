@@ -47,7 +47,7 @@ npm run serve
 ## 用户验证
 
 - 登入/登出
-- 保持登入状态（用localStorage存的，不主动登出就永远保持登入）
+- 保持登入状态（用localStorage储存uid，不主动登出就永远保持登入）
 
 ## 加载账单
 
@@ -118,6 +118,32 @@ npm run serve
 ## serverless服务
 
 本项目使用Firebase的Firestore，目前用量为 `spark` 套餐，暂不收费。
+
+## 用户验证及权限设置
+
+在firebase的 `Authentication` 之下新建一个邮箱密码的登录账号，拿到 `uid`。
+
+开发的时候设计一下用 `uid` 验证登录。
+
+在firebase的 `firestore database`里面设置 `rule`
+
+```
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /{document=**} {
+      allow read, write: if request.auth.uid == ${uid};
+    }
+  }
+}
+```
+
+储存规则之后，这个 uid 以外的用户都不能使用了。
+
+为什么要限制仅允许一个 uid ？
+
+因为我是开发给我自己用的，我希望即使别人拿到我的firebase credentials也用不了它。
 
 ## 维护项目安全
 
