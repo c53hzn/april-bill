@@ -1462,6 +1462,7 @@ button:hover {
 }
 select {
   color: black;
+  font-size: 16px;
   border-radius: 2px;
 }
 .no-decor-link {
