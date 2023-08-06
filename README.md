@@ -6,7 +6,7 @@ Frameworks used: Vue and Vite.
 
 中文名称: 四方账单
 
-使用的框架: Vue 和 Vite。
+使用的框架: Vue 和 Vite。使用的云服务: Firebase。
 
 ## base url
 
@@ -119,13 +119,36 @@ npm run serve
 
 本项目使用Firebase的Firestore，目前用量为 `spark` 套餐，暂不收费。
 
+## 开发模式转生产模式
+
+在Firebase上创建项目的时候，一开始系统会让你选是要开发模式还是生产模式，如果选了开发模式，那么接下来30天的时间里，任何拿到你的客户端credentials的人都可以操作你的数据库。
+
+这是靠项目设置里面的“安全规则”来实现的，如果需要从开发模式转到生产模式，其实数据上不需要做任何操作，只需要把项目设置里的安全规则改一改就行了。
+
 ## 用户验证及权限设置
 
 在firebase的 `Authentication` 之下新建一个邮箱密码的登录账号，拿到 `uid`。
 
-开发的时候设计一下用 `uid` 验证登录。
+开发的时候设计一下用 `uid` 验证登录，抄下这个 uid ，一会我们用得到。
 
 在firebase的 `firestore database`里面设置 `rule`
+
+原本默认有一条规则，设置的时间是项目创建后一个月的日期，这条规则的意思是“允许创建后一个月之内的读写操作”，这就算是“开发模式”了，默认你只开发一个月吗？😱
+
+```
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /{document=**} {
+    allow read, write: if request.time < timestamp.date(${year}, ${month}, ${day});
+    }
+
+  }
+}
+```
+
+我们把它改成这样，意思是“允许uid是这个的用户进行读写”，那么时间限制就取消了，新增一个用户限制，就保证了只有我自己输入的这个uid才能操作。
 
 ```
 rules_version = '2';
@@ -138,8 +161,6 @@ service cloud.firestore {
   }
 }
 ```
-
-储存规则之后，这个 uid 以外的用户都不能使用了。
 
 为什么要限制仅允许一个 uid ？
 

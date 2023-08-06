@@ -1,5 +1,6 @@
 <template>
-  <div id="app">
+  <div>
+    <ForkOnGithub v-if="!isLoggedin"></ForkOnGithub>
     <div v-if="isLoggedin" class="main-container">
       <div class="loadbill-setting">
         <h3>筛选条件</h3>
@@ -40,7 +41,7 @@
         <button @click="showSumAcc">查看账户汇总</button>
         <button @click="showSumCat">查看分类汇总</button>
       </div>
-      <div style="position: relative; text-align: left">
+      <div style="position: relative; padding: 0px 10px; text-align: left">
         <span class="sum-up">
           支出: &nbsp;
           <span class="txt-red">
@@ -61,7 +62,7 @@
             {{ reserveTotal.text }}
           </span>
         </span>
-        <div style="position: absolute; right: 0px; bottom: 2px; text-align: right">
+        <div style="position: absolute; right: 10px; bottom: 2px; text-align: right">
           <button @click="showAccDetail">编辑账户</button>
           <br />
           <button @click="showCatDetail">编辑分类</button>
@@ -106,74 +107,66 @@
           class="close-btn"
           :class="{ hide: !searchKW }"
           @click="clearSearch"
-          style="top: -7px; font-size: 30px; right: 10px"
+          style="top: 3px; font-size: 30px; right: 10px"
         >
           ×
         </div>
       </div>
       <div class="bills">
-        <table class="table">
-          <tbody>
-            <tr
-              :class="searchResultClass[idx]"
-              v-for="(bill, idx) in curPageBills"
-              :key="bill.id"
-            >
-              <td :class="{'date-decor':bill.DATE_display&&idx}">
-                <div class="text-start date" v-if="bill.DATE_display">
-                  {{ bill.DATE_display }}
+        <div
+          v-for="(bill, idx) in curPageBills"
+          :key="bill.id"
+        >
+          <div class="date" v-if="bill.DATE_display"
+           :class="{'date-decor':bill.DATE_display&&idx}">
+            {{ bill.DATE_display }}
+          </div>
+          <div :class="searchResultClass[idx]" class="bill-unit">
+            <div class="act-btn-container">
+              <div class="act-btn" title="查看详情" @click="showBillDetail(idx)">
+                <i class="fa-solid fa-eye"></i>
+              </div>
+              <div class="act-btn" title="删除" @click="delBill(bill)">
+                <i class="fa-solid fa-trash-can"></i>
+              </div>
+            </div>
+            <div class="bill-data-container">
+              <div>
+                <div class="bill-data">
+                  {{ bill.NAME }}
                 </div>
-                <div>
-                  <div class="act-btn-container">
-                    <div class="act-btn" title="查看详情" @click="showBillDetail(idx)">
-                      <i class="fa-solid fa-eye"></i>
-                    </div>
-                    <div class="act-btn" title="删除" @click="delBill(bill)">
-                      <i class="fa-solid fa-trash-can"></i>
-                    </div>
-                  </div>
-                  <div class="bill-data-container">
-                    <div>
-                      <div class="bill-data">
-                        {{ bill.NAME }}
-                      </div>
-                      <div class="bill-data">
-                        <i
-                          v-if="bill.NATURE == '收入'"
-                          class="fa-solid fa-arrow-up green"
-                        ></i>
-                        <i
-                          v-if="bill.NATURE == '支出'"
-                          class="fa-solid fa-arrow-down red"
-                        ></i>
-                        <i
-                          v-if="bill.NATURE == '转账'"
-                          class="fa-solid fa-repeat orange"
-                        ></i>
-                        {{ bill.AMOUNT }}
-                      </div>
-                    </div>
-                    <div class=gray>
-                      <div v-if="bill.NATURE!='转账'" class="bill-data">{{ bill.CATEGORY }}</div>
-                      <div v-if="bill.ACC_OUT" class="bill-data">
-                        <i style="color: red"
-                        class="fa-solid fa-arrow-down"
-                      ></i>
-                      {{ bill.ACC_OUT }}
-                      </div>
-                      <div v-if="bill.ACC_IN" class="bill-data">
-                        <i style="color: green"
-                          class="fa-solid fa-arrow-up"
-                        ></i>
-                        {{ bill.ACC_IN }}
-                      </div>
-                    </div>
-                  </div>
+                <div class="bill-data">
+                  <i
+                    v-if="bill.NATURE == '收入'"
+                    class="fa-solid fa-arrow-up green"
+                  ></i>
+                  <i
+                    v-if="bill.NATURE == '支出'"
+                    class="fa-solid fa-arrow-down red"
+                  ></i>
+                  <i
+                    v-if="bill.NATURE == '转账'"
+                    class="fa-solid fa-repeat orange"
+                  ></i>
+                  {{ bill.AMOUNT }}
                 </div>
-              </td>
-            </tr>
-          </tbody>
-        </table>
+              </div>
+              <div class=gray>
+                <div v-if="bill.NATURE!='转账'" class="bill-data">{{ bill.CATEGORY }}</div>
+                <div v-if="bill.ACC_OUT" class="bill-data">
+                  <i class="fa-solid fa-arrow-down red"
+                ></i>
+                {{ bill.ACC_OUT }}
+                </div>
+                <div v-if="bill.ACC_IN" class="bill-data">
+                  <i class="fa-solid fa-arrow-up green"
+                  ></i>
+                  {{ bill.ACC_IN }}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
       <div
         class="overlay"
@@ -393,13 +386,39 @@
         <div class="close-btn" @click="hideOverlay">×</div>
       </div>
     </div>
+    <div class="pagenation-container">
+      <div>
+        <span class="page-item" :class="prevNext.prevStyle" @click="goToPrev">
+          «
+        </span>
+        <select
+          style="margin-top: -1; min-width: 50px; height: 24px; text-align: center"
+          @change="loadBill"
+          v-model.number="curPage"
+        >
+          <option v-for="(option, i) in pageNumOption" :key="i">
+            {{ option }}
+          </option>
+        </select>
+        <span class="page-item" :class="prevNext.nextStyle" @click="goToNext">
+          »
+        </span>
+      </div>
+    </div>
+    <div style="margin-bottom: 10px">
+      共{{ pageNumOption[pageNumOption.length - 1] }}页, 共{{
+        bills.length
+      }}条记录
+    </div>
+    <p>&nbsp;</p>
+    <Footer></Footer>
     <Login v-if="!isLoggedin" :errorMsg="login_errMsg" @login="getLoginInfo"></Login>
-    <ForkOnGithub v-if="!isLoggedin"></ForkOnGithub>
   </div>
 </template>
 
 <script>
 import ForkOnGithub from "./components/Fork-On-Github.vue";
+import Footer from "./components/Footer.vue";
 import Login from "./components/Login.vue";
 import DatePickerUnit from "./components/DatePickerUnit.vue";
 //firebase config start
@@ -482,6 +501,7 @@ export default {
     ForkOnGithub,
     Login,
     DatePickerUnit,
+    Footer
   },
   name: "April-Bill",
   data() {
@@ -651,11 +671,13 @@ export default {
       if (this.prevPage == 0) return;
       this.curPage--;
       this.loadBill();
+      this.searchWithinPage();
     },
     goToNext() {
       if (this.nextPage == 0) return;
       this.curPage++;
       this.loadBill();
+      this.searchWithinPage();
     },
     showBillDetail(idx) {
       this.showOverlay();
@@ -1442,9 +1464,14 @@ select {
   color: black;
   border-radius: 2px;
 }
+.no-decor-link {
+  text-decoration: none;
+}
+.no-decor-link:visited {
+  color: inherit;
+}
 .main-container {
   margin: 0px auto;
-  padding: 0px 10px;
   width: 800px;
   max-width: 100%;
 }
@@ -1457,8 +1484,12 @@ select {
   text-align: left;
   border: solid gray 1px;
 }
+.bill-unit {
+  padding-top: 10px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid silver;
+}
 .act-btn-container {
-  padding-right: 20px;
   width: 20%;
   text-align: center;
   display: inline-block;
@@ -1471,16 +1502,10 @@ select {
   width: 50%;
   display: inline-block;
 }
-.table {
-  margin-bottom: 0;
-  width: 100%;
-}
-.table tr {
-  vertical-align: middle;
-}
 .loadbill-setting {
   position: relative;
   margin: 10px auto;
+  padding: 0px 10px;
 }
 .loadbill-set-unit {
   min-width: 300px;
@@ -1576,7 +1601,8 @@ button.disabled {
   color: orange;
 }
 .date {
-  margin-bottom: 20px;
+  padding-top: 10px;
+  padding-left: 10px;
 }
 .date-decor {
   border-top: 2px solid silver;
@@ -1584,6 +1610,8 @@ button.disabled {
 @media all and (max-width: 450px) {
   .bills {
     width: 100%;
+    border-left: none;
+    border-right: none;
   }
   .view-container {
     max-height: 420px;
