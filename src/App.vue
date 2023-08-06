@@ -1465,6 +1465,7 @@ select {
   border-radius: 2px;
 }
 .no-decor-link {
+  color: inherit;
   text-decoration: none;
 }
 .no-decor-link:visited {
