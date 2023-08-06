@@ -1,3 +1,5 @@
+![image](https://www.houzhenni.com/img/portfolio/april-bill.png)
+
 # april-bill intro
 
 An SPA app for personal bookkeeping purpose, static front-end page with serverless service from Firebase.
