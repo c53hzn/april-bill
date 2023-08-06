@@ -87,7 +87,7 @@ npm run serve
 
 ## 登入后页面
 
-![image](https://github.com/c53hzn/april-bill/assets/30020736/731d4181-d0f4-466f-93fa-fd1df54e32f5)
+![image](https://www.houzhenni.com/img/portfolio/april-bill.png)
 
 ## 编辑账户选项
 
