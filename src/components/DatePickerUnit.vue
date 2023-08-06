@@ -114,5 +114,6 @@ export default {
 <style>
 select.date-picker-select {
   color: black;
+  font-size: 16px;
 }
 </style>
