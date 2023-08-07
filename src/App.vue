@@ -385,34 +385,34 @@
         </div>
         <div class="close-btn" @click="hideOverlay">×</div>
       </div>
-    </div>
-    <div class="pagenation-container">
-      <div>
-        <span class="page-item" :class="prevNext.prevStyle" @click="goToPrev">
-          «
-        </span>
-        <select
-          style="margin-top: -1; min-width: 50px; height: 24px; text-align: center"
-          @change="loadBill"
-          v-model.number="curPage"
-        >
-          <option v-for="(option, i) in pageNumOption" :key="i">
-            {{ option }}
-          </option>
-        </select>
-        <span class="page-item" :class="prevNext.nextStyle" @click="goToNext">
-          »
-        </span>
+      <div class="pagenation-container">
+        <div>
+          <span class="page-item" :class="prevNext.prevStyle" @click="goToPrev">
+            «
+          </span>
+          <select
+            style="margin-top: -1; min-width: 50px; height: 24px; text-align: center"
+            @change="loadBill"
+            v-model.number="curPage"
+          >
+            <option v-for="(option, i) in pageNumOption" :key="i">
+              {{ option }}
+            </option>
+          </select>
+          <span class="page-item" :class="prevNext.nextStyle" @click="goToNext">
+            »
+          </span>
+        </div>
+      </div>
+      <div style="margin-bottom: 10px">
+        共{{ pageNumOption[pageNumOption.length - 1] }}页, 共{{
+          bills.length
+        }}条记录
       </div>
     </div>
-    <div style="margin-bottom: 10px">
-      共{{ pageNumOption[pageNumOption.length - 1] }}页, 共{{
-        bills.length
-      }}条记录
-    </div>
+    <Login v-if="!isLoggedin" :errorMsg="login_errMsg" @login="getLoginInfo"></Login>
     <p>&nbsp;</p>
     <Footer></Footer>
-    <Login v-if="!isLoggedin" :errorMsg="login_errMsg" @login="getLoginInfo"></Login>
   </div>
 </template>
 
@@ -1464,7 +1464,7 @@ select {
   color: black;
   border-radius: 2px;
 }
-select, input {
+select, input, textarea {
   font-size: 16px;
 }
 .no-decor-link {
