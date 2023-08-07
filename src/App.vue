@@ -250,7 +250,7 @@
           详细描述:
           <textarea
             placeholder="选填"
-            style="width: 100%; height: 100px"
+            style="width: 285px; height: 100px"
             v-model="billSelected.NOTES"
           ></textarea>
         </p>
