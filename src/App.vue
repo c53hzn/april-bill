@@ -1618,7 +1618,7 @@ button.disabled {
     border-right: none;
   }
   .view-container {
-    max-height: 420px;
+    max-height: 400px;
     overflow-y: scroll;
   }
 }
