@@ -98,7 +98,7 @@
         在此页搜索
         <input
           placeholder="输入关键字..."
-          style="width: 134px; height: 34px; font-size: 16px; border-radius: 6px"
+          style="width: 134px; height: 34px; border-radius: 6px"
           @input="searchWithinPage"
           v-model="searchKW"
           type="text"
@@ -1462,8 +1462,10 @@ button:hover {
 }
 select {
   color: black;
-  font-size: 16px;
   border-radius: 2px;
+}
+select, input {
+  font-size: 16px;
 }
 .no-decor-link {
   color: inherit;
