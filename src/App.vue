@@ -98,7 +98,7 @@
         在此页搜索
         <input
           placeholder="输入关键字..."
-          style="width: 134px; height: 34px; border-radius: 6px"
+          style="padding: 1px 2px; width: 134px; height: 34px; border-radius: 6px"
           @input="searchWithinPage"
           v-model="searchKW"
           type="text"
