@@ -106,7 +106,7 @@
         <div
           :class="{ hide: !searchKW, inline: searchKW.length>0 }"
           @click="clearSearch"
-          style="position: absolute;right: 8px;cursor: pointer;font-size: 35px"
+          style="position: absolute;right: 8px;cursor: pointer;font-size: 35px; vertical-align: -webkit-baseline-middle;"
         >
           ×
         </div>
