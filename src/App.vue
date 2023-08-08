@@ -104,10 +104,9 @@
           type="text"
         />
         <div
-          class="close-btn"
           :class="{ hide: !searchKW }"
           @click="clearSearch"
-          style="top: 3px; font-size: 30px; right: 10px"
+          style="position: absolute;right: 8px;cursor: pointer;font-size: 35px;display: inline-block;"
         >
           ×
         </div>
