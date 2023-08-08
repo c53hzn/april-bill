@@ -104,9 +104,9 @@
           type="text"
         />
         <div
-          :class="{ hide: !searchKW }"
+          :class="{ hide: !searchKW, inline: searchKW.length>0 }"
           @click="clearSearch"
-          style="position: absolute;right: 8px;cursor: pointer;font-size: 35px;display: inline-block;"
+          style="position: absolute;right: 8px;cursor: pointer;font-size: 35px"
         >
           ×
         </div>
@@ -1565,6 +1565,9 @@ button.disabled {
 }
 .show {
   display: block;
+}
+.inline {
+  display: inline-block;
 }
 .hide {
   display: none;
