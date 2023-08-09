@@ -1558,7 +1558,6 @@ button.disabled {
   text-align: left;
   background: white;
   display: none;
-  overflow-y: scroll;
 }
 .view-acc {
   margin-bottom: 10px;
