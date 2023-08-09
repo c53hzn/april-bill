@@ -699,7 +699,7 @@ export default {
             ? "0" + (curDate.getMonth() + 1)
             : curDate.getMonth() + 1;
         let tempDay =
-          curDate.getDate() < 9 ? "0" + curDate.getDate() : curDate.getDate();
+          curDate.getDate() < 10 ? "0" + curDate.getDate() : curDate.getDate();
         this.billSelected.year = curDate.getFullYear();
         this.billSelected.month = tempMonth;
         this.billSelected.day = tempDay;
