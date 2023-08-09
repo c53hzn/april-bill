@@ -109,7 +109,7 @@ npm run serve
 
 ## 查看账户交易汇总
 
-![image](https://github.com/c53hzn/april-bill/assets/30020736/404612cd-9cbf-45f1-8534-14ac92854987)
+![image](https://github.com/c53hzn/april-bill/assets/30020736/592d9871-631e-4362-b67a-61bafb957b93)
 
 ## 查看分类交易汇总
 
