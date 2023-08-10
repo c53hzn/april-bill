@@ -1309,7 +1309,7 @@ export default {
       var tempDate = new Date(lastMonthYear,lastMonthMonth-1,day);
       var tempDay = tempDate.getDate();
       var tempDate2 = tempDay<day?new Date(lastMonthYear,lastMonthMonth-1,day-tempDay):tempDate;
-      var lastMonthDay = tempDate2.getDate();
+      var lastMonthDay = tempDate2.getDate()+1;
       lastMonthDay = lastMonthDay < 10 ? "0" + lastMonthDay : lastMonthDay;
       return {
         startDate: {
