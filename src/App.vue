@@ -13,7 +13,7 @@
             :year="filter.startDate.year"
             :month="filter.startDate.month"
             :day="filter.startDate.day"
-          ></DatePickerUnit>
+          ></DatePickerUnit><br>
           结束时间
           <DatePickerUnit
             @dateChanged="changeFilterEndDate"
@@ -25,6 +25,9 @@
           ></DatePickerUnit>
         </div>
         <div class="loadbill-set-unit">
+          <button @click="init">过去一月</button>
+          <button @click="loadBillThisMonth">本月至今</button><br>
+          <button @click="loadBillToday">只看今天</button><br><br>
           每页条数
           <select v-model.number="perPageSelected">
             <option v-for="(option, i) in perPageOption" :key="i">
@@ -665,6 +668,18 @@ export default {
       this.curPageBills = paginatedBills;
       this.prevPage = curPage - 1;
       this.nextPage = curPage == lastPage ? 0 : curPage + 1;
+    },
+    loadBillThisMonth() {
+      var dateObj = this.getThisMonth();
+      this.filter.startDate = dateObj.startDate;
+      this.filter.endDate = dateObj.endDate;
+      this.loadNewBill(1);
+    },
+    loadBillToday() {
+      var dateObj = this.getToday();
+      this.filter.startDate = dateObj.startDate;
+      this.filter.endDate = dateObj.endDate;
+      this.loadNewBill(1);
     },
     goToPrev() {
       if (this.prevPage == 0) return;
@@ -1316,6 +1331,46 @@ export default {
           year: lastMonthYear,
           month: lastMonthMonth,
           day: lastMonthDay
+        },
+        endDate: {
+          year,
+          month,
+          day
+        }
+      }
+    },
+    getThisMonth() {
+      var date = new Date();
+      var year = date.getFullYear();
+      var month = date.getMonth() + 1;
+      var day = date.getDate();
+      month = month < 10 ? "0" + month : month;
+      day = day < 10 ? "0" + day : day;
+      return {
+        startDate: {
+          year: year,
+          month: month,
+          day: "01"
+        },
+        endDate: {
+          year,
+          month,
+          day
+        }
+      }
+    },
+    getToday() {
+      var date = new Date();
+      var year = date.getFullYear();
+      var month = date.getMonth() + 1;
+      var day = date.getDate();
+      month = month < 10 ? "0" + month : month;
+      day = day < 10 ? "0" + day : day;
+      return {
+        startDate: {
+          year: year,
+          month: month,
+          day: day
         },
         endDate: {
           year,
