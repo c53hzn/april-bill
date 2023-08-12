@@ -13,7 +13,7 @@
             :year="filter.startDate.year"
             :month="filter.startDate.month"
             :day="filter.startDate.day"
-          ></DatePickerUnit><br>
+          ></DatePickerUnit><br class="hide-on-mobile">
           结束时间
           <DatePickerUnit
             @dateChanged="changeFilterEndDate"
@@ -121,7 +121,10 @@
         >
           <div class="date" v-if="bill.DATE_display"
            :class="{'date-decor':bill.DATE_display&&idx}">
-            {{ bill.DATE_display }}
+            {{ bill.DATE_display }} &nbsp;
+            <i class="fa-solid fa-arrow-down red"></i>{{bill.sum_out}}&nbsp;
+            <i class="fa-solid fa-arrow-up green"></i>{{bill.sum_in}}&nbsp;
+            <i class="fa-solid fa-repeat orange"></i>{{bill.sum_trans}}
           </div>
           <div :class="searchResultClass[idx]" class="bill-unit">
             <div class="act-btn-container">
@@ -663,6 +666,59 @@ export default {
           paginatedBills[i].DATE_display = paginatedBills[i].DATE;
         } else {
           paginatedBills[i].DATE_display = "";
+        }
+      }
+      for (let j = paginatedBills.length-1; j >= 0; j--) {
+        if (j == paginatedBills.length-1) {
+          if (paginatedBills[j].NATURE=="支出") {
+            paginatedBills[j].sum_out = paginatedBills[j].AMOUNT;
+            paginatedBills[j].sum_in = "0.00";
+            paginatedBills[j].sum_trans = "0.00";
+          }
+          if (paginatedBills[j].NATURE=="收入") {
+            paginatedBills[j].sum_out = "0.00";
+            paginatedBills[j].sum_in = paginatedBills[j].AMOUNT;
+            paginatedBills[j].sum_trans = "0.00";
+          }
+          if (paginatedBills[j].NATURE=="转账") {
+            paginatedBills[j].sum_out = "0.00";
+            paginatedBills[j].sum_in = "0.00";
+            paginatedBills[j].sum_trans = paginatedBills[j].AMOUNT;
+          }
+        } else {
+          if (paginatedBills[j].DATE==paginatedBills[j+1].DATE) {
+            if (paginatedBills[j].NATURE=="支出") {
+              paginatedBills[j].sum_out = (paginatedBills[j+1].sum_out*1 + paginatedBills[j].AMOUNT*1).toFixed(2);
+              paginatedBills[j].sum_in = paginatedBills[j+1].sum_in;
+              paginatedBills[j].sum_trans = paginatedBills[j+1].sum_trans;
+            }
+            if (paginatedBills[j].NATURE=="收入") {
+              paginatedBills[j].sum_out = paginatedBills[j+1].sum_out;
+              paginatedBills[j].sum_in = (paginatedBills[j+1].sum_in*1 + paginatedBills[j].AMOUNT*1).toFixed(2);
+              paginatedBills[j].sum_trans = paginatedBills[j+1].sum_trans;
+            }
+            if (paginatedBills[j].NATURE=="转账") {
+              paginatedBills[j].sum_out = paginatedBills[j+1].sum_out;
+              paginatedBills[j].sum_in = paginatedBills[j+1].sum_in;
+              paginatedBills[j].sum_trans = (paginatedBills[j+1].sum_trans*1 + paginatedBills[j].AMOUNT*1).toFixed(2);
+            }
+          } else {
+            if (paginatedBills[j].NATURE=="支出") {
+              paginatedBills[j].sum_out = paginatedBills[j].AMOUNT;
+              paginatedBills[j].sum_in = "0.00";
+              paginatedBills[j].sum_trans = "0.00";
+            }
+            if (paginatedBills[j].NATURE=="收入") {
+              paginatedBills[j].sum_out = "0.00";
+              paginatedBills[j].sum_in = paginatedBills[j].AMOUNT;
+              paginatedBills[j].sum_trans = "0.00";
+            }
+            if (paginatedBills[j].NATURE=="转账") {
+              paginatedBills[j].sum_out = "0.00";
+              paginatedBills[j].sum_in = "0.00";
+              paginatedBills[j].sum_trans = paginatedBills[j].AMOUNT;
+            }
+          }
         }
       }
       this.curPageBills = paginatedBills;
@@ -1668,6 +1724,9 @@ button.disabled {
   border-top: 2px solid silver;
 }
 @media all and (max-width: 450px) {
+  .hide-on-mobile {
+    display: none;
+  }
   .bills {
     width: 100%;
     border-left: none;
