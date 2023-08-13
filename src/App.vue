@@ -271,6 +271,7 @@
         <div class="close-btn" @click="hideOverlay">×</div>
       </div>
       <div class="view-container" :class="{ show: isShowAcc }">
+        <p><strong>* 初次填写时，“初始值”和“现余额”应填相同数字，之后每当有账单的新增/修改/删除，“现余额”就会有相应变动。</strong></p>
         <div class="view-acc" v-for="(acc, i) in accEditing" :key="i">
           账户名:
           <input v-model="acc.NAME" style="width:170px;"/>
@@ -282,7 +283,7 @@
           <input v-model="acc.initialBalance" type="number" style="width:170px;"/>
           <br />
          现余额: 
-           <input v-model="acc.balance" disabled type="number" style="width:170px;"/>
+           <input v-model="acc.balance" type="number" style="width:170px;"/>
         </div>
         <div style="text-align: center">
           <button @click="addAcc(accEditing.length)">新增账户</button>
