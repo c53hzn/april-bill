@@ -1376,18 +1376,22 @@ export default {
       month = month < 10 ? "0" + month : month;
       day = day < 10 ? "0" + day : day;
       var lastMonthMonth = month==1?12:month-1;
-      lastMonthMonth = lastMonthMonth < 10 ? "0" + lastMonthMonth : lastMonthMonth;
       var lastMonthYear = lastMonthMonth==12?year-1:year;
       var tempDate = new Date(lastMonthYear,lastMonthMonth-1,day);
       var tempDay = tempDate.getDate();
       var tempDate2 = tempDay<day?new Date(lastMonthYear,lastMonthMonth-1,day-tempDay):tempDate;
       var lastMonthDay = tempDate2.getDate()+1;
       lastMonthDay = lastMonthDay < 10 ? "0" + lastMonthDay : lastMonthDay;
+      var lastMonthFull = new Date(lastMonthYear,lastMonthMonth,lastMonthDay);
+      var laMonth = lastMonthFull.getMonth() + 1;
+      laMonth = laMonth < 10 ? "0" + laMonth : laMonth;
+      var laDay = lastMonthFull.getDate();
+      laDay = laDay < 10 ? "0" + laDay : laDay;
       return {
         startDate: {
           year: lastMonthYear,
-          month: lastMonthMonth,
-          day: lastMonthDay
+          month: laMonth,
+          day: laDay
         },
         endDate: {
           year,
