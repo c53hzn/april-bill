@@ -1383,7 +1383,7 @@ export default {
       var lastMonthDay = tempDate2.getDate()+1;
       lastMonthDay = lastMonthDay < 10 ? "0" + lastMonthDay : lastMonthDay;
       var lastMonthFull = new Date(lastMonthYear,lastMonthMonth,lastMonthDay);
-      var laMonth = lastMonthFull.getMonth() + 1;
+      var laMonth = lastMonthFull.getMonth();
       laMonth = laMonth < 10 ? "0" + laMonth : laMonth;
       var laDay = lastMonthFull.getDate();
       laDay = laDay < 10 ? "0" + laDay : laDay;
