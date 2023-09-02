@@ -1670,10 +1670,11 @@ button.disabled {
   margin: auto;
   padding: 26px 10px 30px 10px;
   width: 300px;
-  height: 580px;
+  height: 500px;
   text-align: left;
   background: white;
   display: none;
+  overflow-y: scroll;
 }
 .view-acc {
   margin-bottom: 10px;
@@ -1739,7 +1740,6 @@ button.disabled {
   }
   .view-container {
     max-height: 400px;
-    overflow-y: scroll;
   }
 }
 </style>
