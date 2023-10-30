@@ -512,14 +512,14 @@ export default {
   name: "April-Bill",
   data() {
     return {
-      perPageSelected: 10,
+      perPageSelected: 100,
       curPage: 99,
       prevPage: 0,
       nextPage: 0,
       startYear: 2020,
       endYear: 2030,
       natureOption: ["支出", "收入", "转账"],
-      perPageOption: [10, 20, 50, 100],
+      perPageOption: [20, 50, 100, 200],
       pageNumOption: [],
       billTemplateOption: [],
       curPageBills: [],
@@ -557,7 +557,7 @@ export default {
           month: "",
           day: ""
         },
-        perPage: 10
+        perPage: 100
       },
       searchKW: "",
       searchResultClass: [],
